@@ -44,7 +44,7 @@ layout (std430, binding = 4) buffer Meshes
 };
 
 vec4 normalizeVec4(in vec4 point){
-    return point/point.w;
+    return vec4( point.x/point.w, point.y/point.w, point.z/point.w, 1);
 }
 
 
@@ -76,10 +76,10 @@ bool rayPlaneIntersection2(vec4 origin, vec4 dir, out vec4 intersection, out flo
 
 bool rayPlaneIntersection3(vec4 origin, vec4 dir, out vec4 intersection, out float lambda) {
     vec4 normal = vec4(0,-1,0,0);
-    normal = mat_inverse*normal;
+    //normal = mat_inverse*normal;
     float ps = dot(dir.xyz,normal.xyz);
     vec4 planePoint = vec4(0,groundDistance,0,1);
-    planePoint = mat_inverse*normal;
+    //planePoint = mat_inverse*normal;
     if(ps!=0){
         lambda = -dot(planePoint.xyz-origin.xyz, normal.xyz)/ps;
         intersection = origin + lambda*dir;
@@ -220,8 +220,9 @@ vec4 specularLighting(in vec3 lightVector, in vec3 normal, in vec3 u, in vec4 ve
 
 const int MAX_TRACE = 1;
 
-vec4 trace(vec4 origin, vec4 dir)
+vec4 trace(vec4 origine, vec4 dir)
 {
+    
     float ka = 0.7, kd = 0.7;
     hitinfo_t h, h2;
     vec4 intersectionSol;
@@ -230,7 +231,7 @@ vec4 trace(vec4 origin, vec4 dir)
     bool flag = false;
 
 
-    if(isIntersected(origin, dir, h) && rayPlaneIntersection3(origin, dir, intersectionSol, lambda)){
+    if(isIntersected(origin, dir, h) && rayPlaneIntersection2(origin, dir, intersectionSol, lambda)){
         if (h.t[0] > lambda){
             flag = true;
         }
