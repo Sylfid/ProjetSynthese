@@ -220,6 +220,11 @@ vec4 specularLighting(in vec3 lightVector, in vec3 normal, in vec3 u, in vec4 ve
     return cs;
 }
 
+vec4 getColorFromEnvironment(in vec3 intersectPoint){
+    return texture2D(colorTexture, vec2(int(intersectPoint.x)%532/532., int(intersectPoint.z)%400/400.));
+    //return texture2D(colorTexture, vec2(intersectPoints.x-floor(intersectPoints.x)
+    //, intersectPoints.z-floor(intersectPoints.z)));
+}
 
 const int MAX_TRACE = 1;
 
@@ -235,13 +240,14 @@ vec4 trace(vec4 origine, vec4 dir)
     float distanceSol = 0.0;
     bool flag = false;
 
-
-    if(isIntersected(origin, dir, h) && rayPlaneIntersection2(origin, dir, intersectionSol, lambda)){
+    bool intersectObjet = isIntersected(origin, dir, h); 
+    bool intersectSol = rayPlaneIntersection2(origin, dir, intersectionSol, lambda);
+    if(intersectObjet && intersectSol){
         if (h.t[0] > lambda){
             flag = true;
         }
     }
-    if(isIntersected(origin, dir, h) && flag == false) {
+    if(intersectObjet && flag == false) {
         vec4 vertColor = colors[indices[h.hit_vptr]];
         //Envoyer un rayon du point d'intersection vers la lumière
         vec4 intersection = origin + h.t.x * dir;
@@ -255,8 +261,8 @@ vec4 trace(vec4 origine, vec4 dir)
             vec4 specular = specularLighting(normalize(intersection.xyz-lightPosition), normalize(normal.xyz), normalize(dir.xyz), vertColor); //ok
             return(ambiant + diffuse + specular);
         }
-    } else if(rayPlaneIntersection2(origin, dir, intersectionSol, lambda)) {
-        vec4 vertColor = vec4(0.5,0.5,0.5,1);
+    } else if(intersectSol) {
+        vec4 vertColor = getColorFromEnvironment(intersectionSol.xyz);
         vec4 ambiant = ka * vertColor * lightIntensity;
         if(isIntersected2(intersectionSol, (intersectionSol - vec4(lightPosition, 1)), 0, false)) {
             return(ambiant);
