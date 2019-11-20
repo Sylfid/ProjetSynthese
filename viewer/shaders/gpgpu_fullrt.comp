@@ -180,12 +180,12 @@ bool isIntersected(vec4 origin, vec4 dir, out hitinfo_t h)
   	return hit;
 }
 
-bool isIntersected2(vec4 origin, vec4 dir, int jprec)
+bool isIntersected2(vec4 origin, vec4 dir, int jprec, bool sur_obj)
 {
     vec4 dist; // stores distance + barycentric coord
     bool hit = false;
 		for(int j = 0; j < indices.length(); j += 3) {
-        if(j != jprec) {
+        if(j != jprec || !sur_obj) {
       			if(intersectTriangle(origin, dir, j, dist)) {
                 hit = true;
       			}
@@ -246,7 +246,7 @@ vec4 trace(vec4 origine, vec4 dir)
         //Envoyer un rayon du point d'intersection vers la lumière
         vec4 intersection = origin + h.t.x * dir;
         vec4 ambiant = ka * vertColor * lightIntensity;
-        if(isIntersected2(intersection, (intersection - vec4(lightPosition, 1)), h.hit_vptr)) {
+        if(isIntersected2(intersection, (intersection - vec4(lightPosition, 1)), h.hit_vptr, true)) {
             // On est à l'ombre, donc que l'ambiant
             return(ambiant);
         } else { // On est au soleil, donc full illumination
@@ -258,7 +258,7 @@ vec4 trace(vec4 origine, vec4 dir)
     } else if(rayPlaneIntersection2(origin, dir, intersectionSol, lambda)) {
         vec4 vertColor = vec4(0.5,0.5,0.5,1);
         vec4 ambiant = ka * vertColor * lightIntensity;
-        if(isIntersected(intersectionSol, (intersectionSol - vec4(lightPosition, 1)), h)) {
+        if(isIntersected2(intersectionSol, (intersectionSol - vec4(lightPosition, 1)), 0, false)) {
             return(ambiant);
         } else {
             vec4 normal = vec4(0,1,0,0);
