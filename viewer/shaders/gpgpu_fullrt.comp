@@ -62,7 +62,7 @@ bool rayPlaneIntersection2(vec4 origin, vec4 dir, out vec4 intersection, out flo
     vec3 normal = vec3(0,-1,0);
     float ps = dot(dir.xyz,normal);
     if(ps!=0){
-        lambda = -dot(vec3(0,groundDistance,0)-vec3(normalizeVec4(origin)), normal.xyz)/ps;
+        lambda = dot(vec3(0,-groundDistance,0)-vec3(normalizeVec4(origin)), normal.xyz)/ps;
         intersection = normalizeVec4(origin) + lambda*dir;
     }
     else{
