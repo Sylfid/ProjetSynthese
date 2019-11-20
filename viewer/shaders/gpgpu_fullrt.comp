@@ -76,10 +76,12 @@ bool rayPlaneIntersection2(vec4 origin, vec4 dir, out vec4 intersection, out flo
 
 bool rayPlaneIntersection3(vec4 origin, vec4 dir, out vec4 intersection, out float lambda) {
     vec4 normal = vec4(0,-1,0,0);
+
     //normal = mat_inverse*normal;
     float ps = dot(dir.xyz,normal.xyz);
     vec4 planePoint = vec4(0,groundDistance,0,1);
     //planePoint = mat_inverse*normal;
+
     if(ps!=0){
         lambda = -dot(planePoint.xyz-origin.xyz, normal.xyz)/ps;
         intersection = origin + lambda*dir;
@@ -130,8 +132,9 @@ bool intersectBoundingBox(vec4 origine, vec4 dir) {
     return false;
 }
 
-bool intersectTriangle(vec4 origin, vec4 dir, int ptr, out vec4 dist)
+bool intersectTriangle(vec4 origine, vec4 dir, int ptr, out vec4 dist)
 {
+    vec4 origin = normalizeVec4(origine);
     vec4 e1 = vertices[indices[ptr+1]] - vertices[indices[ptr]];
     vec4 e2 = vertices[indices[ptr+2]] - vertices[indices[ptr]];
     vec4 t = origin - vertices[indices[ptr]];
@@ -222,7 +225,9 @@ const int MAX_TRACE = 1;
 
 vec4 trace(vec4 origine, vec4 dir)
 {
-    
+
+    vec4 origin = normalizeVec4(origine);
+
     float ka = 0.7, kd = 0.7;
     hitinfo_t h, h2;
     vec4 intersectionSol;
@@ -250,7 +255,7 @@ vec4 trace(vec4 origine, vec4 dir)
             vec4 specular = specularLighting(normalize(intersection.xyz-lightPosition), normalize(normal.xyz), normalize(dir.xyz), vertColor); //ok
             return(ambiant + diffuse + specular);
         }
-    } else if(rayPlaneIntersection3(origin, dir, intersectionSol, lambda)) {
+    } else if(rayPlaneIntersection2(origin, dir, intersectionSol, lambda)) {
         vec4 vertColor = vec4(0.5,0.5,0.5,1);
         vec4 ambiant = ka * vertColor * lightIntensity;
         if(isIntersected(intersectionSol, (intersectionSol - vec4(lightPosition, 1)), h)) {
