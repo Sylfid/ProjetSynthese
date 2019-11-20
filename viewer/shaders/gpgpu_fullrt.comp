@@ -1,0 +1,239 @@
+#version 430 core
+
+layout(binding = 0, rgba32f) uniform writeonly image2D framebuffer;
+
+uniform sampler2D colorTexture;
+uniform mat4 mat_inverse;
+uniform mat4 persp_inverse;
+uniform float lightIntensity;
+uniform vec3 lightPosition;
+uniform float shininess;
+uniform float eta;
+uniform vec3 bbmin;
+uniform vec3 bbmax;
+uniform float radius;
+uniform float groundDistance;
+uniform vec3 center;
+#define MAX_SCENE_BOUNDS    10.0
+#define EPS                 0.000001
+
+
+struct hitinfo_t {
+    vec4 t;
+    int hit_vptr;
+};
+
+layout (std430, binding = 1) buffer Vertices
+{
+    vec4 vertices[];
+};
+
+layout (std430, binding = 2) buffer Normals
+{
+    vec4 normals[];
+};
+
+layout (std430, binding = 3) buffer Colors
+{
+    vec4 colors[];
+};
+
+layout (std430, binding = 4) buffer Meshes
+{
+    int indices[];
+};
+
+bool rayPlaneIntersection(vec4 origin, vec4 dir, out vec4 intersection) {
+    float x = dir.x * ((-groundDistance-origin.y) / dir.y) + origin.x;
+    float z = dir.z * ((-groundDistance-origin.y) / dir.y) + origin.z;
+    if(-500 <= x && x <= 500 && -500 <= z && z <= 500) {
+        intersection = vec4(x, groundDistance, z, 0);
+        return true;
+    }
+    return false;
+}
+
+bool intersectBoundingBox(vec4 origin, vec4 dir) {
+    float x, y, z;
+    x = dir.x * ((bbmin.z-origin.z) / dir.z) + origin.x;
+    y = dir.y * ((bbmin.z-origin.z) / dir.z) + origin.y;
+    if(bbmin.x <= x && x <= bbmax.x && bbmin.y <= y && y <= bbmax.y) {
+        return true;
+    }
+    x = dir.x * ((bbmax.z-origin.z) / dir.z) + origin.x;
+    y = dir.y * ((bbmax.z-origin.z) / dir.z) + origin.y;
+    if(bbmin.x <= x && x <= bbmax.x && bbmin.y <= y && y <= bbmax.y) {
+        return true;
+    }
+    z = dir.z * ((bbmin.x-origin.x) / dir.x) + origin.z;
+    y = dir.y * ((bbmin.x-origin.x) / dir.x) + origin.y;
+    if(bbmin.z <= z && z <= bbmax.z && bbmin.y <= y && y <= bbmax.y) {
+        return true;
+    }
+    z = dir.z * ((bbmax.x-origin.x) / dir.x) + origin.z;
+    y = dir.y * ((bbmax.x-origin.x) / dir.x) + origin.y;
+    if(bbmin.z <= z && z <= bbmax.z && bbmin.y <= y && y <= bbmax.y) {
+        return true;
+    }
+    x = dir.x * ((bbmin.y-origin.y) / dir.y) + origin.x;
+    z = dir.z * ((bbmin.y-origin.y) / dir.y) + origin.z;
+    if(bbmin.x <= x && x <= bbmax.x && bbmin.z <= z && z <= bbmax.z) {
+        return true;
+    }
+    x = dir.x * ((bbmax.y-origin.y) / dir.y) + origin.x;
+    z = dir.z * ((bbmax.y-origin.y) / dir.y) + origin.z;
+    if(bbmin.x <= x && x <= bbmax.x && bbmin.z<= z && z<= bbmax.z) {
+        return true;
+    }
+    return false;
+}
+
+bool intersectTriangle(vec4 origin, vec4 dir, int ptr, out vec4 dist)
+{
+    vec4 e1 = vertices[indices[ptr+1]] - vertices[indices[ptr]];
+    vec4 e2 = vertices[indices[ptr+2]] - vertices[indices[ptr]];
+    vec4 t = origin - vertices[indices[ptr]];
+    float facteur = 1. / dot(cross(dir.xyz, e2.xyz), e1.xyz);
+    float lambda = facteur * dot(cross(t.xyz, e1.xyz), e2.xyz);
+    float alpha = facteur * dot(cross(dir.xyz, e2.xyz), t.xyz);
+    float beta = facteur * dot(cross(t.xyz, e1.xyz), dir.xyz);
+    if((1-alpha-beta) >= 0 && (1-alpha-beta) <= 1 && alpha >= 0 && alpha <= 1 && beta >= 0 && beta <= 1 && lambda > 0) {
+        vec4 intersection = (1-alpha-beta) * vertices[indices[ptr]] + alpha * vertices[indices[ptr+1]] + beta * vertices[indices[ptr+2]];
+        dist = vec4(lambda, (1-alpha-beta), alpha, beta); // distance en x, puis coordonnées barycentriques en yzw
+        return true;
+    }
+    return false;
+}
+
+vec4 interpolateNormal(hitinfo_t h)
+{
+    return (h.t.y * normals[indices[h.hit_vptr]] + h.t.z * normals[indices[h.hit_vptr+1]] + h.t.w * normals[indices[h.hit_vptr+2]]);
+}
+
+vec4 interpolateColor(hitinfo_t h)
+{
+	// TODO
+	 return vec4(1);
+}
+
+bool isIntersected(vec4 origin, vec4 dir, out hitinfo_t h)
+{
+    vec4 dist; // stores distance + barycentric coord
+    bool hit = false;
+  	h.t.x = radius * MAX_SCENE_BOUNDS;
+  	if(intersectBoundingBox(origin, dir)) {
+    		for(int j = 0; j < indices.length(); j += 3) {
+      			if(intersectTriangle(origin, dir, j, dist)) {
+                if(dist.x < h.t.x) {
+                    h.t =  dist;
+                    h.hit_vptr = j;
+                    hit = true;
+                }
+      			}
+    		}
+  	}
+  	return hit;
+}
+
+bool isIntersected2(vec4 origin, vec4 dir, int jprec)
+{
+    vec4 dist; // stores distance + barycentric coord
+    bool hit = false;
+		for(int j = 0; j < indices.length(); j += 3) {
+        if(j != jprec) {
+      			if(intersectTriangle(origin, dir, j, dist)) {
+                hit = true;
+      			}
+        }
+		}
+  	return hit;
+}
+
+float fresnelCoef(in vec3 lightVector, in vec3 normal) {
+    float nu = eta;
+    float costheta = abs(dot(lightVector, normal));       //si bien normalise
+    float ci = sqrt( pow(nu, 2) - (1- pow(costheta, 2)));
+
+    float fs = pow( abs( (costheta  - ci) / (costheta  + ci) ),2);
+    float fp = pow( abs( (pow(nu,2)*costheta  - ci) / (pow(nu,2)*costheta  + ci)) ,2);
+    float f = (fs + fp)/2.;
+
+    return f;
+}
+
+vec4 specularLighting(in vec3 lightVector, in vec3 normal, in vec3 u, in vec4 vertColor) {
+    float costheta = abs(dot(lightVector, normal));
+    vec3 h = normalize(normal + lightVector); //vector H
+    float f = fresnelCoef(lightVector, normal);
+    float theta = acos(costheta);
+    float cosalphaplustheta = dot(u, normal);
+    float alphaplustheta = acos(cosalphaplustheta);
+    float alpha = alphaplustheta - theta;
+    float tanthetacarre = (1-pow(costheta,2))/pow(costheta,2);
+    float g1 = 2 / ( 1 + pow(1 +pow(alpha,2)*tanthetacarre ,1/2) );
+    vec4 cs = f * vertColor * pow(max(dot(normal, h), 0), shininess) * lightIntensity;
+    return cs;
+}
+
+
+const int MAX_TRACE = 1;
+
+vec4 trace(vec4 origin, vec4 dir)
+{
+    float ka = 0.7, kd = 0.7;
+    hitinfo_t h, h2;
+    vec4 intersectionSol;
+    if(isIntersected(origin, dir, h)) {
+        vec4 vertColor = colors[indices[h.hit_vptr]];
+        //Envoyer un rayon du point d'intersection vers la lumière
+        vec4 intersection = origin + h.t.x * dir;
+        vec4 ambiant = ka * vertColor * lightIntensity;
+        if(isIntersected2(intersection, (intersection - vec4(lightPosition, 1)), h.hit_vptr)) {
+            // On est à l'ombre, donc que l'ambiant
+            return(ambiant);
+        } else { // On est au soleil, donc full illumination
+            vec4 normal = interpolateNormal(h);
+            vec4 diffuse = kd * vertColor * max(dot(normalize(normal.xyz), normalize(intersection.xyz-lightPosition)), 0) * lightIntensity; //ok
+            vec4 specular = specularLighting(normalize(intersection.xyz-lightPosition), normalize(normal.xyz), normalize(dir.xyz), vertColor); //ok
+            return(ambiant + diffuse + specular);
+        }
+    } else if(rayPlaneIntersection(origin, dir, intersectionSol)) {
+        vec4 vertColor = vec4(0.5,0.5,0.5,1);
+        vec4 ambiant = ka * vertColor * lightIntensity;
+        if(isIntersected(intersectionSol, (intersectionSol - vec4(lightPosition, 1)), h)) {
+            return(ambiant);
+        } else {
+            vec4 normal = vec4(0,1,0,0);
+            vec4 diffuse = kd * vertColor * max(dot(normalize(normal.xyz), normalize(intersectionSol.xyz-lightPosition)), 0) * lightIntensity;
+            vec4 specular = specularLighting(normalize(intersectionSol.xyz-lightPosition), normalize(normal.xyz), normalize(dir.xyz), vertColor); //ok
+            return(ambiant + diffuse + specular);
+        }
+        //return(vec4(0.5,0.5,0.5,1));
+    }
+    return vec4(0,0.4,0,1);
+}
+
+layout (local_size_x = 8, local_size_y = 8) in;
+void main(void) {
+    ivec2 pix = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(framebuffer);
+    if (pix.x >= size.x || pix.y >= size.y) {
+        return;
+    }
+    vec2 pos = pix / (size - vec2(0.5,0.5));
+    // pos in [0,1]^2 Need it in [-1,1]^2:
+    pos = 2 * pos - vec2(1.,1.);
+
+    // Step 1: I need pixel coordinates.
+    vec4 worldPos = vec4(pos.x, pos.y, 1.0, 1.0);
+    worldPos = persp_inverse * worldPos;
+    worldPos /= worldPos.w;
+    worldPos.w = 0;
+    worldPos = normalize(worldPos);
+    // Step 2: ray direction:
+    vec4 dir = normalize((mat_inverse * worldPos));
+    vec4 eye = (mat_inverse * vec4(0, 0, 0, 1));
+    vec4 color = trace(eye, dir);
+
+    imageStore(framebuffer, pix, color);
+}
