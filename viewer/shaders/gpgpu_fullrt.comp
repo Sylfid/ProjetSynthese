@@ -217,7 +217,7 @@ vec4 trace(in vec4 origine, in vec4 dir, out vec4 newPoint, out vec4 newDirectio
     float distanceSol = 0.0;
 
     bool flag=false;
-    bool intersectObjet = isIntersected(origin, dir, h); 
+    bool intersectObjet = isIntersected(origin, dir, h);
     bool intersectSol = rayPlaneIntersection2(origin, dir, intersectionSol, lambda);
     if(intersectObjet && intersectSol){
         if (h.t[0] > lambda){
@@ -238,14 +238,14 @@ vec4 trace(in vec4 origine, in vec4 dir, out vec4 newPoint, out vec4 newDirectio
         if(isIntersected2(intersection, (intersection - vec4(lightPosition, 1)), h.hit_vptr, true)) {
             // On est à l'ombre, donc que l'ambiant
             return(ambiant);
-        } 
+        }
         else { // On est au soleil, donc full illumination
             vec4 normal = interpolateNormal(h);
             vec4 diffuse = kd * vertColor * max(dot(normalize(normal.xyz), normalize(intersection.xyz-lightPosition)), 0) * lightIntensity; //ok
             vec4 specular = specularLighting(normalize(intersection.xyz-lightPosition), normalize(normal.xyz), normalize(dir.xyz), vertColor, eta); //ok
             return(ambiant + diffuse + specular);
         }
-    } 
+    }
     else if(intersectSol) {
         vec4 vertColor = getColorFromEnvironment(intersectionSol.xyz);
         vec4 ambiant = ka * vertColor * lightIntensity;
@@ -278,23 +278,24 @@ vec4 getIndirectLighting(in vec4 origin, in vec4 dir){
     vec4 newDirection2;
     float coefFres2;
     bool flag = false;
-    int i;
+    int i =0;
     vec4 colorFinal = vec4(0,0,0,1);
-    for(i=0; i<1; i++){
-        colors[i] = trace(newPoint, newDirection, secondPoint, newDirection2, coefFres2, flag);
-        newPoint = secondPoint;
-        newDirection = newDirection2;
-        if(flag==true){
-            break;
-        }
+    while(i<3){
         if(i!=0){
             coefFres[i] = coefFres2;
         }
         else{coefFres[i]=1;}
+        colors[i] = trace(newPoint, newDirection, secondPoint, newDirection2, coefFres2, flag);
+        newPoint = secondPoint;
+        newDirection = newDirection2;
+        i += 1;
+        if(flag==true){
+            break;
+        }
     }
     for(int j=i-1; j>-1; j--){
         colorFinal=(colorFinal + colors[j])*coefFres[j];
-    } 
+    }
     return colorFinal;
 }
 
