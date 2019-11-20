@@ -132,7 +132,7 @@ bool intersectTriangle(vec4 origine, vec4 dir, int ptr, out vec4 dist)
     float alpha = facteur * dot(cross(dir.xyz, e2.xyz), t.xyz);
     float beta = facteur * dot(cross(t.xyz, e1.xyz), dir.xyz);
     if((1-alpha-beta) >= 0 && (1-alpha-beta) <= 1 && alpha >= 0 && alpha <= 1 && beta >= 0 && beta <= 1 && lambda > 0) {
-        vec4 intersection = (1-alpha-beta) * vertices[indices[ptr]] + alpha * vertices[indices[ptr+1]] + beta * vertices[indices[ptr+2]];
+
         dist = vec4(lambda, (1-alpha-beta), alpha, beta); // distance en x, puis coordonnées barycentriques en yzw
         return true;
     }
@@ -183,6 +183,27 @@ bool isIntersected2(vec4 origin, vec4 dir, int jprec, bool sur_obj)
   	return hit;
 }
 
+bool isIntersected3(in vec4 origin, in vec4 dir, in int jprec, out hitinfo_t h)
+{
+    vec4 dist; // stores distance + barycentric coord
+    bool hit = false;
+  	h.t.x = radius * MAX_SCENE_BOUNDS;
+  	if(intersectBoundingBox(origin, dir)) {
+    		for(int j = 0; j < indices.length(); j += 3) {
+                if(j != jprec) {
+                    if(intersectTriangle(origin, dir, j, dist)) {
+                        if(dist.x < h.t.x) {
+                            h.t =  dist;
+                            h.hit_vptr = j;
+                            hit = true;
+                        }
+                    }
+                }
+    		}
+  	}
+  	return hit;
+
+}
 
 vec4 specularLighting(in vec3 lightVector, in vec3 normal, in vec3 u, in vec4 vertColor, in float nu) {
     float costheta = abs(dot(lightVector, normal));
@@ -217,44 +238,54 @@ vec4 trace(in vec4 origine, in vec4 dir, out vec4 newPoint, out vec4 newDirectio
     float distanceSol = 0.0;
 
     bool flag=false;
-    bool intersectObjet = isIntersected(origin, dir, h);
+    bool intersectObjet = isIntersected3(origin, dir, -1, h);
     bool intersectSol = rayPlaneIntersection2(origin, dir, intersectionSol, lambda);
+    
     if(intersectObjet && intersectSol){
         if (h.t[0] > lambda){
             flag = true;
         }
     }
+
     if(intersectObjet && flag == false) {
 
         vec4 vertColor = colors[indices[h.hit_vptr]];
         //Envoyer un rayon du point d'intersection vers la lumière
         vec4 intersection = origin + h.t.x * dir;
+        intersection = normalizeVec4(intersection);
 
         newPoint = intersection;
         newDirection = vec4(reflect(dir.xyz, vec3(interpolateNormal(h))),0);
         coefFres = fresnelCoef(intersection.xyz-lightPosition, interpolateNormal(h).xyz, eta);
 
+
         vec4 ambiant = ka * vertColor * lightIntensity;
-        if(isIntersected2(intersection, (intersection - vec4(lightPosition, 1)), h.hit_vptr, true)) {
+
+
+
+        //intersection-vec4(lightPosition) ??
+
+
+        if(isIntersected3(intersection, (intersection - vec4(lightPosition, 1)), h.hit_vptr, h2)) {
             // On est à l'ombre, donc que l'ambiant
             return(ambiant);
         }
         else { // On est au soleil, donc full illumination
-            vec4 normal = interpolateNormal(h);
+            vec4 normal = interpolateNormal(h2);
             vec4 diffuse = kd * vertColor * max(dot(normalize(normal.xyz), normalize(intersection.xyz-lightPosition)), 0) * lightIntensity; //ok
             vec4 specular = specularLighting(normalize(intersection.xyz-lightPosition), normalize(normal.xyz), normalize(dir.xyz), vertColor, eta); //ok
             return(ambiant + diffuse + specular);
         }
     }
     else if(intersectSol) {
+
         vec4 vertColor = getColorFromEnvironment(intersectionSol.xyz);
         vec4 ambiant = ka * vertColor * lightIntensity;
 
         newPoint = intersectionSol;
         newDirection = vec4(reflect(dir.xyz, vec3(0,1,0)),0);
         coefFres = fresnelCoef(intersectionSol.xyz-lightPosition, vec3(0,1,0), 1.);
-
-        if(isIntersected2(intersectionSol, (intersectionSol - vec4(lightPosition, 1)), 0, false)) {
+        if(isIntersected3(intersectionSol, (intersectionSol - vec4(lightPosition, 1)), -1, h2)) {
             return(ambiant);
         } else {
             vec4 normal = vec4(0,1,0,0);
@@ -264,8 +295,9 @@ vec4 trace(in vec4 origine, in vec4 dir, out vec4 newPoint, out vec4 newDirectio
         }
         //return(vec4(0.5,0.5,0.5,1));
     }
+    //else{flag2 = true; return vec4(0,1,0,1);}
     flag2 = true;
-    return vec4(0,0.0,0,1);
+    return vec4(0,1,0,1);
 }
 
 vec4 getIndirectLighting(in vec4 origin, in vec4 dir){
@@ -280,7 +312,7 @@ vec4 getIndirectLighting(in vec4 origin, in vec4 dir){
     bool flag = false;
     int i =0;
     vec4 colorFinal = vec4(0,0,0,1);
-    while(i<3){
+    while(i<2){
         if(i!=0){
             coefFres[i] = coefFres2;
         }
@@ -293,10 +325,10 @@ vec4 getIndirectLighting(in vec4 origin, in vec4 dir){
             break;
         }
     }
-    for(int j=i-1; j>-1; j--){
-        colorFinal=(colorFinal + colors[j])*coefFres[j];
+    for(int j=i-1; j>0; j--){
+        colorFinal=(colorFinal + colors[j]);
     }
-    return colorFinal;
+    return colors[0];
 }
 
 
