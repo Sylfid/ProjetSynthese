@@ -41,7 +41,7 @@ bool intersections(in vec3 start, in vec3 direction, out vec3 newPoint, out int 
     for(int i=0; i<centers.length(); i++) {
         if(raySphereIntersect(start, direction, centers[i], radiuses[i], temp)) {
             if(test) {
-                if((start-temp).length() < (start-newPoint).length()) {
+                if(length(start-temp) < length(start-newPoint)) {
                     newPoint = temp;
                     indice = i;
                 }
@@ -113,11 +113,11 @@ void main(void)
         if(intersections(intersection, normalize(lightPosition-intersection), poubelle1, poubelle2)) {
             couleurs[compteur] = ambiant;
         } else {
-            diffuse = kd * vertColor * max(dot(normal, (intersection-lightPosition)), 0) * lightIntensity;
-            specular = specularLighting((intersection-lightPosition), normal, u);
+            diffuse = kd * vertColor * max(dot(normal, normalize(intersection-lightPosition)), 0) * lightIntensity;
+            specular = specularLighting(normalize(intersection-lightPosition), normal, u);
             couleurs[compteur] = ambiant + diffuse + specular;
         }
-        vec3 reflectedRay = reflect(u, normal);
+        vec3 reflectedRay = normalize(reflect(u, normal));
         compteur = compteur + 1;
         u = reflectedRay;
         depart = intersection;

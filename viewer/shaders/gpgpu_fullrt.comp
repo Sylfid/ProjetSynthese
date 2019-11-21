@@ -141,7 +141,7 @@ bool intersectTriangle(vec4 origine, vec4 dir, int ptr, out vec4 dist)
 
 vec4 interpolateNormal(hitinfo_t h)
 {
-    return (h.t.y * normals[indices[h.hit_vptr]] + h.t.z * normals[indices[h.hit_vptr+1]] + h.t.w * normals[indices[h.hit_vptr+2]]);
+    return normalize((h.t.y * normals[indices[h.hit_vptr]] + h.t.z * normals[indices[h.hit_vptr+1]] + h.t.w * normals[indices[h.hit_vptr+2]]));
 }
 
 vec4 interpolateColor(hitinfo_t h)
@@ -240,7 +240,7 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
     bool flag=false;
     bool intersectObjet = isIntersected3(origin, dir, jprec, h);
     bool intersectSol = rayPlaneIntersection2(origin, dir, intersectionSol, lambda);
-    
+
     if(intersectObjet && intersectSol){
         if (h.t[0] > lambda){
             flag = true;
@@ -256,7 +256,7 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
 
         newPoint = intersection;
         newDirection = vec4(reflect(dir.xyz, vec3(interpolateNormal(h))),0);
-        coefFres = fresnelCoef(intersection.xyz-lightPosition, normalizeVec4(interpolateNormal(h)).xyz, eta);
+        coefFres = fresnelCoef(normalize(intersection.xyz-lightPosition), interpolateNormal(h).xyz, eta);
         jprec2 = h.hit_vptr;
 
         vec4 ambiant = ka * vertColor * lightIntensity;
@@ -276,13 +276,13 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
         }
     }
     else if(intersectSol) {
-
+        //INTERSECTION SOL
         vec4 vertColor = getColorFromEnvironment(intersectionSol.xyz);
         vec4 ambiant = ka * vertColor * lightIntensity;
 
         newPoint = intersectionSol;
         newDirection = vec4(reflect(dir.xyz, vec3(0,1,0)),0);
-        coefFres = fresnelCoef(intersectionSol.xyz-lightPosition, vec3(0,1,0), 1.);
+        coefFres = fresnelCoef(intersectionSol.xyz-lightPosition, vec3(0,1,0), 0.5); ///dernier para eta du sol
         jprec2 = -1;
         flag2=false;
         if(isIntersected3(intersectionSol, (intersectionSol - vec4(lightPosition, 1)), -1, h2)) {
@@ -301,8 +301,11 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
 }
 
 vec4 getIndirectLighting(in vec4 origin, in vec4 dir){
-    vec4 colors[3];
+    vec4 colors[4];
     colors[1]=vec4(0,0,0,1);
+    colors[0]=vec4(0,0,0,1);
+    colors[2]=vec4(0,0,0,1);
+    colors[3]=vec4(0,0,0,1);
     float coefFres[3];
     coefFres[1]=0;
     vec4 newPoint = origin;
@@ -316,36 +319,41 @@ vec4 getIndirectLighting(in vec4 origin, in vec4 dir){
     vec4 colorFinal = vec4(0,0,0,1);
     int jprec = -1;
     int jprec2 = 0;
-        colors[0] = trace(newPoint, newDirection, jprec, secondPoint, newDirection2, coefFres2, flag, jprec2);
-        coefFres[i]=1;
+    /*
+    colors[0] = trace(newPoint, newDirection, jprec, secondPoint, newDirection2, coefFres2, flag, jprec2);
+    coefFres[i]=1;
+    newPoint = secondPoint;
+    newDirection = newDirection2;
+    jprec = jprec2;
+    if(flag == false){
+        colors[1] = trace(newPoint, newDirection, jprec, secondPoint, newDirection2, coefFres2, flag, jprec2);
+        coefFres[1] = coefFres2;
         newPoint = secondPoint;
         newDirection = newDirection2;
-        jprec = jprec2;
-        if(flag == false){
-            colors[1] = trace(newPoint, newDirection, jprec, secondPoint, newDirection2, coefFres2, flag, jprec2);
-            coefFres[1] = coefFres2;
-            newPoint = secondPoint;
-            newDirection = newDirection2;
-        }
-    /*while(i<2){
-        colors[i] = trace(newPoint, newDirection, secondPoint, newDirection2, coefFres2, flag, jprec);
+    }*/
+
+    while(i<2){
+        colors[i] = trace(newPoint, newDirection, jprec, secondPoint, newDirection2, coefFres2, flag, jprec2);
 
         if(i!=0){
             coefFres[i] = coefFres2;
         }
-        else{coefFres[i]=1;}
+        else{
+          coefFres[i]=1;
+        }
         newPoint = secondPoint;
         newDirection = newDirection2;
-
+        jprec = jprec2;
         i += 1;
         if(flag==true){
             break;
         }
     }
     for(int j=i-1; j>-1; j--){
-        colorFinal=(colorFinal + colors[j]);
-    }*/
-    return colors[0]+coefFres[1]*colors[1];
+        colorFinal=coefFres[j]*(colorFinal + colors[j]);
+    }
+    //return colors[0]+coefFres[1]*(colors[1]+coefFres[2]*colors[2]);
+    return colorFinal;
 }
 
 

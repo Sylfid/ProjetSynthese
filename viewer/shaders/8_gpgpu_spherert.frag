@@ -70,8 +70,8 @@ void main(void)
     vec4 resultColor;
     if(hasIntersect) {
         vec3 vertNormal = normalize(intersection - center);
-        vec3 refractedRay = refract(u, vertNormal, 1./eta);
-        vec3 reflectedRay = reflect(u, vertNormal);
+        vec3 refractedRay = normalize(refract(u, vertNormal, 1./eta));
+        vec3 reflectedRay = normalize(reflect(u, vertNormal));
         float coeff1 = fresnelCoef(u, vertNormal, eta);
         vec3 intersection2;
         vec4 temp;
