@@ -34,7 +34,7 @@ float NormalDistrib(float costhetaH, float alpha){
     if(costhetaH >=0 && costhetaH < PI/2 ){
      float frac1 = 1 / (pow(costhetaH, 4) * PI);
      float tanThetaSquare = (1 - pow(costhetaH, 2))/pow(costhetaH, 2);
-     float frac2 = alpha*alpha/ pow((alpha*alpha + pow(tanThetaSquare, 2)), 2);
+     float frac2 = alpha*alpha/ pow((alpha*alpha + tanThetaSquare), 2);
      return frac1 * frac2;
     }
     else{
@@ -43,8 +43,8 @@ float NormalDistrib(float costhetaH, float alpha){
 }
 
 float GGXDistrib(float cosTheta, float alpha){
-     float tanThetaSquare = (1 - pow(cosTheta, 2))/pow(cosTheta, 2);
-     return 2/( 1 + sqrt(1 + tanThetaSquare * pow(alpha, 2)));
+     float tanThetaSquare = (1 - cosTheta*cosTheta)/(cosTheta*cosTheta);
+     return 2/( 1 + sqrt(1 + tanThetaSquare * alpha*alpha));
 }
 
 
@@ -85,14 +85,14 @@ void main( void )
         cs =  f*vertColor * pow(max(dot( normalize(vertNormal), h), 0), shininess) * lightIntensity;
     }
      else{
-
+        float new_alpha = (200 - shininess)/200;
         float costhetaH = dot(normalize(vertNormal),h);
         float costhetaI = dot(normalize(vertNormal), -normalize(lightVector));
         float costhetaO = dot(normalize(vertNormal), normalize(eyeVector));
-        float g1_i = GGXDistrib(costhetaI, alpha);
-        float g1_o = GGXDistrib(costhetaO, alpha);
-        float Do_h = NormalDistrib(costhetaH, alpha);
-        cs = vertColor * lightIntensity * f * g1_o *g1_i * Do_h /4 / costhetaI / costhetaO;
+        float g1_i = GGXDistrib(costhetaI, new_alpha);
+        float g1_o = GGXDistrib(costhetaO, new_alpha);
+        float Do_h = NormalDistrib(costhetaH, new_alpha);
+        cs =  f *vertColor* lightIntensity * g1_o *g1_i * Do_h /4 / costhetaI / costhetaO;
      }
 
 
