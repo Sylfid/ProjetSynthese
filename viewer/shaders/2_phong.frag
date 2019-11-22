@@ -37,7 +37,7 @@ float fresnel(float costheta){
     return f;
 }
 
-float NormalDistrib(float costhetaH, float alpha, ){
+float NormalDistrib(float costhetaH, float alpha){
 
 
 
