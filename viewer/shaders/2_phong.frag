@@ -34,7 +34,7 @@ float NormalDistrib(float costhetaH, float alpha){
     if(costhetaH >=0 && costhetaH < PI/2 ){
      float frac1 = 1 / (pow(costhetaH, 4) * PI);
      float tanThetaSquare = (1 - pow(costhetaH, 2))/pow(costhetaH, 2);
-     float frac2 = pow(alpha/100, 2)/ pow((pow(alpha/100, 2) + pow(tanThetaSquare, 2)), 2);
+     float frac2 = alpha*alpha/ pow((alpha*alpha + pow(tanThetaSquare, 2)), 2);
      return frac1 * frac2;
     }
     else{
@@ -89,7 +89,10 @@ void main( void )
         float costhetaH = dot(normalize(vertNormal),h);
         float costhetaI = dot(normalize(vertNormal), -normalize(lightVector));
         float costhetaO = dot(normalize(vertNormal), normalize(eyeVector));
-        cs = vertColor * lightIntensity * f * NormalDistrib(costhetaH, alpha) * GGXDistrib(costhetaI, alpha) * GGXDistrib(costhetaO, alpha) /4 / costhetaI / costhetaO;
+        float g1_i = GGXDistrib(costhetaI, alpha);
+        float g1_o = GGXDistrib(costhetaO, alpha);
+        float Do_h = NormalDistrib(costhetaH, alpha);
+        cs = vertColor * lightIntensity * f * g1_o *g1_i * Do_h /4 / costhetaI / costhetaO, shininess);
      }
 
 
