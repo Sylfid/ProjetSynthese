@@ -38,11 +38,18 @@ float fresnel(float costheta){
 }
 
 float NormalDistrib(float costhetaH, float alpha){
+
     if(costhetaH >=0 && costhetaH < PI/2 ){
-     float frac1 = 1 / (pow(costhetaH, 4) * PI);
-     float tanThetaSquare = (1 - pow(costhetaH, 2))/pow(costhetaH, 2);
-     float frac2 = alpha*alpha/ pow((alpha*alpha + pow(tanThetaSquare, 2)), 2);
-     return frac1 * frac2;
+
+        float costhetaH2 = costhetaH * costhetaH;
+        float frac1 = 1 / (costhetaH2 * costhetaH2 * PI);
+        float tanThetaSquare = (1 - costhetaH2) / costhetaH2;
+        
+
+        float frac2 = alpha  / (alpha*alpha + tanThetaSquare);
+        frac2 = frac2 * frac2;
+
+        return frac1 * frac2;
     }
     else{
 
@@ -51,19 +58,15 @@ float NormalDistrib(float costhetaH, float alpha){
 }
 
 float GGXDistrib(float cosTheta, float alpha){
-     float tanThetaSquare = (1 - pow(cosTheta, 2))/pow(cosTheta, 2);
-     return 2/( 1 + sqrt(1 + tanThetaSquare * pow(alpha, 2)));
+
+     float tanThetaSquare = (1 - cosTheta * cosTheta)/(cosTheta * cosTheta);
+     return 2/( 1 + sqrt(1 + tanThetaSquare * alpha * alpha));
 }
 
 
 
 void main( void )
 {
-    // au cas ou
-
-    //normalize(vertNormal);
-    //normalize(eyeVector);
-    //normalize(lightVector);
      // This is the place where there's work to be done
 
      float ka = 0.1;
@@ -85,7 +88,7 @@ void main( void )
      float cosalphaplustheta = dot(normalize(eyeVector), normalize(vertNormal));
      float alphaplustheta = acos(cosalphaplustheta);
      float alpha = alphaplustheta - theta;
-     float tanthetacarre = (1-pow(costheta,2))/pow(costheta,2);
+     float tanthetacarre = (1-costheta*costheta)/(costheta * costheta);
 
      vec4 cs ;  //initialization
 
