@@ -19,26 +19,35 @@ in vec4 lightSpace;
 out vec4 fragColor;
 
 float fresnel(float costheta){
+    
+    float eta2 = eta*eta;
+    float ci = sqrt( eta2 - (1- costheta*costheta));
 
-    float ci = sqrt( pow(eta, 2) - (1- pow(costheta, 2)));
+    float fs = (costheta  - ci) / (costheta  + ci);
+    fs = fs*fs;
 
-    float fs = pow( abs( (costheta  - ci) / (costheta  + ci) ),2);
-    float fp = pow( abs( (pow(eta,2)*costheta  - ci) / (pow(eta,2)*costheta  + ci)) ,2);
+    float fp = (eta2*costheta - ci) / (eta2*costheta + ci);
+    fp = fp*fp;
+
     float f = (fs + fp)/2;
+
     if (f>1.){
       f = 1.;}
+
     return f;
 }
 
 float NormalDistrib(float costhetaH, float alpha){
-    if(costhetaH >=0 && costhetaH < PI/2 ){
-     float frac1 = 1 / (pow(costhetaH, 4) * PI);
-     float tanThetaSquare = (1 - pow(costhetaH, 2))/pow(costhetaH, 2);
-     float frac2 = pow(alpha/100, 2)/ pow((pow(alpha/100, 2) + pow(tanThetaSquare, 2)), 2);
-     return frac1 * frac2;
+    if(costhetaH >=0 && costhetaH <= PI/2 ){
+
+        float frac1 = 1 / (pow(costhetaH, 4) * PI);
+        float tanThetaSquare = (1 - pow(costhetaH, 2))/pow(costhetaH, 2);
+        float frac2 = pow(alpha/100, 2)/ pow((pow(alpha/100, 2) + pow(tanThetaSquare, 2)), 2);
+        return frac1 * frac2;
     }
     else{
-    return 0;
+
+        return 0;
     }
 }
 
