@@ -648,7 +648,6 @@ void glShaderWindow::setShader(const QString& shader)
     }
     else{isActualShaderComp = false;}
 	QString shaderPath = workingDirectory + "../shaders/";
-    printf(shader.toStdString().c_str());
     QDir shadersDir = QDir(shaderPath);
     QString shader2 = shader + "*";
     QStringList shaders = shadersDir.entryList(QStringList(shader2));
