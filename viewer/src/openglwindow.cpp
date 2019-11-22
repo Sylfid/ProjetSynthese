@@ -125,9 +125,7 @@ void OpenGLWindow::renderNow()
 {
     if (!isExposed())
         return;
-
     bool needsInitialize = false;
-
     if (!m_context) {
         m_context = new QOpenGLContext(this);
         if (m_context == 0) qDebug("Unable to allocate the context");

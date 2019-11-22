@@ -123,7 +123,7 @@ int main( int argc, char* argv[] )
 {
     setlocale(LC_ALL,"C");
     QApplication app(argc, argv);
-    QString sceneName = "lemming.ply";
+    QString sceneName = "teapot.ply";
     QString textureName = "wildtextures-seamless-wood-planks.jpg";
     QString envMapName = "pisa.png";
 
@@ -187,6 +187,5 @@ int main( int argc, char* argv[] )
     w->move(200,100);
     w->setLayout(vb);
     w->show();
-
     return app.exec();
 }
