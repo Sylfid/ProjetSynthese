@@ -808,6 +808,7 @@ void glShaderWindow::initialize()
 {
     // Debug: which OpenGL version are we running? Must be >= 3.2 for shaders,
     // >= 4.3 for compute shaders.
+    isActualShaderComp = false;
     qDebug("OpenGL initialized: version: %s GLSL: %s", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
     // Set the clear color to black
     glClearColor( 0.2f, 0.2f, 0.2f, 1.0f );

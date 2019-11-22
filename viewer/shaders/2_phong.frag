@@ -31,7 +31,7 @@ float fresnel(float costheta){
 }
 
 float NormalDistrib(float costhetaH, float alpha){
-    if(costhetaH >=0){
+    if(costhetaH >=0 && costhetaH < PI/2 ){
      float frac1 = 1 / (pow(costhetaH, 4) * PI);
      float tanThetaSquare = (1 - pow(costhetaH, 2))/pow(costhetaH, 2);
      float frac2 = pow(alpha/100, 2)/ pow((pow(alpha/100, 2) + pow(tanThetaSquare, 2)), 2);
@@ -44,7 +44,7 @@ float NormalDistrib(float costhetaH, float alpha){
 
 float GGXDistrib(float cosTheta, float alpha){
      float tanThetaSquare = (1 - pow(cosTheta, 2))/pow(cosTheta, 2);
-     return 2/( 1 + sqrt(1 + tanThetaSquare * pow(alpha/100, 2)));
+     return 2/( 1 + sqrt(1 + tanThetaSquare * pow(alpha, 2)));
 }
 
 
@@ -70,7 +70,7 @@ void main( void )
 
      //Specular lighting cs
 
-     float costheta = abs(dot(normalize(lightVector), normalize(vertNormal)));       //si bien normalise
+     float costheta = dot(-normalize(lightVector), normalize(vertNormal));       //si bien normalise
      vec4 h = normalize(vertNormal + lightVector); //vector H
      float f = fresnel(costheta);
      float theta = acos(costheta);
@@ -78,25 +78,24 @@ void main( void )
      float alphaplustheta = acos(cosalphaplustheta);
      float alpha = alphaplustheta - theta;
      float tanthetacarre = (1-pow(costheta,2))/pow(costheta,2);
-     float g1 = 2 / ( 1 + sqrt(1 +pow(alpha,2)*tanthetacarre ) );
 
      vec4 cs ;  //initialization
 
      if(blinnPhong){
-        cs = f * vertColor * pow(max(dot( normalize(vertNormal), h), 0), shininess) * lightIntensity;
+        cs =  f*vertColor * pow(max(dot( normalize(vertNormal), h), 0), shininess) * lightIntensity;
     }
      else{
 
         float costhetaH = dot(normalize(vertNormal),h);
-        float costhetaI = dot(normalize(vertNormal),normalize(lightVector));
-        float costhetaO = dot(normalize(vertNormal),normalize(eyeVector));
-        cs = vertColor * lightIntensity * fresnel(costheta) * NormalDistrib(costhetaH, alpha) * GGXDistrib(costhetaI, alpha) * GGXDistrib(costhetaO, alpha) /4 / costhetaI / costhetaO;
+        float costhetaI = dot(normalize(vertNormal), -normalize(lightVector));
+        float costhetaO = dot(normalize(vertNormal), normalize(eyeVector));
+        cs = vertColor * lightIntensity * f * NormalDistrib(costhetaH, alpha) * GGXDistrib(costhetaI, alpha) * GGXDistrib(costhetaO, alpha) /4 / costhetaI / costhetaO;
      }
 
 
 
 
      //fragColor = vertColor;
-     fragColor = ca + cd + cs;
+     fragColor = cs;//ca + cd + cs;
 
 }
