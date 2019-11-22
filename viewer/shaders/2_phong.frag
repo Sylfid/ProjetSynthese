@@ -19,7 +19,7 @@ in vec4 lightSpace;
 out vec4 fragColor;
 
 float fresnel(float costheta){
-    
+
     float eta2 = eta*eta;
     float ci = sqrt( eta2 - (1- costheta*costheta));
 
@@ -38,7 +38,7 @@ float fresnel(float costheta){
 }
 
 float NormalDistrib(float costhetaH, float alpha){
-    if(costhetaH >=0 && costhetaH < PI/2 ){
+    if(costhetaH >=0 && costhetaH <= PI/2 ){
      float frac1 = 1 / (pow(costhetaH, 4) * PI);
      float tanThetaSquare = (1 - pow(costhetaH, 2))/pow(costhetaH, 2);
      float frac2 = alpha*alpha/ pow((alpha*alpha + tanThetaSquare), 2);
@@ -46,7 +46,7 @@ float NormalDistrib(float costhetaH, float alpha){
     }
     else{
 
-        return 0;
+      return 0;
     }
 }
 
@@ -99,7 +99,7 @@ void main( void )
         float costhetaO = dot(normalize(vertNormal), normalize(eyeVector));
         float g1_i = GGXDistrib(costhetaI, new_alpha);
         float g1_o = GGXDistrib(costhetaO, new_alpha);
-        float Do_h = NormalDistrib(costhetaH, new_alpha);
+        float Do_h = NormalDistrib(costhetaH, alpha);
         cs =  f *vertColor* lightIntensity * g1_o *g1_i * Do_h /4 / costhetaI / costhetaO;
      }
 
@@ -107,6 +107,6 @@ void main( void )
 
 
      //fragColor = vertColor;
-     fragColor = cs;//ca + cd + cs;
+     fragColor = cs;//ca + cd ;//+ cs;
 
 }
