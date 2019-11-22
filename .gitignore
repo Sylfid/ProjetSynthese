@@ -1,2 +1,5 @@
 *.o
+trimesh2/lib/libtrimesh.a
 viewer/Makefile
+viewer/myViewer
+*.stash
