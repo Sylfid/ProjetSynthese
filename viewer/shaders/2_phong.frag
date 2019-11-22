@@ -20,11 +20,13 @@ out vec4 fragColor;
 
 float fresnel(float costheta){
 
-    float ci = pow( pow(eta, 2) - (1- pow(costheta, 2)), 1/2);
+    float ci = sqrt( pow(eta, 2) - (1- pow(costheta, 2)));
 
     float fs = pow( abs( (costheta  - ci) / (costheta  + ci) ),2);
     float fp = pow( abs( (pow(eta,2)*costheta  - ci) / (pow(eta,2)*costheta  + ci)) ,2);
     float f = (fs + fp)/2;
+    if (f>1.){
+      f = 1.;}
     return f;
 }
 
@@ -50,46 +52,44 @@ float GGXDistrib(float cosTheta, float alpha){
 void main( void )
 {
     // au cas ou
-    normalize(vertNormal);
-    normalize(eyeVector);
-    normalize(lightVector);
+
+    //normalize(vertNormal);
+    //normalize(eyeVector);
+    //normalize(lightVector);
      // This is the place where there's work to be done
 
      float ka = 0.1;
      float kd = 0.5;
      vec4 vNull;
 
-     //Ambient lighting
+     //Ambient lighting ca
      vec4 ca = ka * vertColor * lightIntensity;
 
-     //Diffuse lighting
-     vec4 cd = kd * vertColor * max(dot(vertNormal, lightVector), 0) * lightIntensity;
+     //Diffuse lighting cd
+     vec4 cd = kd * vertColor * max(dot(normalize(vertNormal), normalize(lightVector)), 0) * lightIntensity;
 
-     //Specular lighting
+     //Specular lighting cs
 
-     float costheta = dot(lightVector, vertNormal);       //si bien normalise
+     float costheta = abs(dot(normalize(lightVector), normalize(vertNormal)));       //si bien normalise
      vec4 h = normalize(vertNormal + lightVector); //vector H
-
      float f = fresnel(costheta);
-
-
      float theta = acos(costheta);
-     float cosalphaplustheta = dot(eyeVector, vertNormal);
+     float cosalphaplustheta = dot(normalize(eyeVector), normalize(vertNormal));
      float alphaplustheta = acos(cosalphaplustheta);
      float alpha = alphaplustheta - theta;
      float tanthetacarre = (1-pow(costheta,2))/pow(costheta,2);
-     float g1 = 2 / ( 1 + pow(1 +pow(alpha,2)*tanthetacarre ,1/2) );
+     float g1 = 2 / ( 1 + sqrt(1 +pow(alpha,2)*tanthetacarre ) );
 
      vec4 cs ;  //initialization
 
      if(blinnPhong){
-        cs = f * vertColor * pow(max(dot(vertNormal, h), 0), shininess) * lightIntensity;
+        cs = f * vertColor * pow(max(dot( normalize(vertNormal), h), 0), shininess) * lightIntensity;
     }
      else{
 
-        float costhetaH = dot(vertNormal,h);
-        float costhetaI = dot(vertNormal,lightVector);
-        float costhetaO = dot(vertNormal,eyeVector);
+        float costhetaH = dot(normalize(vertNormal),h);
+        float costhetaI = dot(normalize(vertNormal),normalize(lightVector));
+        float costhetaO = dot(normalize(vertNormal),normalize(eyeVector));
         cs = vertColor * lightIntensity * fresnel(costheta) * NormalDistrib(costhetaH, alpha) * GGXDistrib(costhetaI, alpha) * GGXDistrib(costhetaO, alpha) /4 / costhetaI / costhetaO;
      }
 
