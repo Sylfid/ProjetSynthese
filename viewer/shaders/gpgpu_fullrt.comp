@@ -54,7 +54,8 @@ float fresnelCoef(in vec3 lightVector, in vec3 normal, in float nu) {
     float fs = pow( abs( (costheta  - ci) / (costheta  + ci) ),2);
     float fp = pow( abs( (pow(nu,2)*costheta  - ci) / (pow(nu,2)*costheta  + ci)) ,2);
     float f = (fs + fp)/2.;
-
+    if (f>1.){
+      f = 1.;}
     return f;
 }
 
@@ -205,7 +206,7 @@ bool isIntersected3(in vec4 origin, in vec4 dir, in int jprec, out hitinfo_t h)
 
 }
 
-vec4 specularLighting(in vec3 lightVector, in vec3 normal, in vec3 u, in vec4 vertColor, in float nu) {
+vec4 specularLighting(in vec3 lightVector, in vec3 normal, in vec3 u, in vec4 vertColor, in float nu) { //normalizés dans l'appel
     float costheta = abs(dot(lightVector, normal));
     vec3 h = normalize(normal + lightVector); //vector H
     float f = fresnelCoef(lightVector, normal, nu);
@@ -282,7 +283,7 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
 
         newPoint = intersectionSol;
         newDirection = vec4(reflect(dir.xyz, vec3(0,1,0)),0);
-        coefFres = fresnelCoef(intersectionSol.xyz-lightPosition, vec3(0,1,0), eta); ///dernier para eta du sol
+        coefFres = fresnelCoef(normalize(intersectionSol.xyz-lightPosition), normalize(vec3(0,1,0)), eta); ///dernier para eta du sol
         jprec2 = -1;
         flag2=false;
         if(isIntersected3(intersectionSol, (intersectionSol - vec4(lightPosition, 1)), -1, h2)) {

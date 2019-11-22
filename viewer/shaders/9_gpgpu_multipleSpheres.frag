@@ -66,10 +66,10 @@ float fresnelCoef(in vec3 lightVector, in vec3 normal) {
     return f;
 }
 
-vec4 specularLighting(in vec3 lightVector, in vec3 normal, in vec3 u) {
-    float costheta = abs(dot(lightVector, normal));
+vec4 specularLighting(in vec3 lightVector, in vec3 normal, in vec3 u) { //normalizés en entrée
+    float costheta = abs(dot(lightVector, normal)); //bien normalisés
     vec3 h = normalize(normal + lightVector); //vector H
-    float f = fresnelCoef(lightVector, normal);
+    float f = fresnelCoef(lightVector, normal);//bien normalisés
     float theta = acos(costheta);
     float cosalphaplustheta = dot(u, normal);
     float alphaplustheta = acos(cosalphaplustheta);
@@ -107,14 +107,14 @@ void main(void)
         if(compteur == 0) {
             coeffs[compteur] = 1;
         } else {
-            coeffs[compteur] = fresnelCoef(u, normal);
+            coeffs[compteur] = fresnelCoef(u, normal); //les 2 normalisés
         }
         ambiant = ka * vertColor * lightIntensity;
         if(intersections(intersection, normalize(lightPosition-intersection), poubelle1, poubelle2)) {
             couleurs[compteur] = ambiant;
         } else {
             diffuse = kd * vertColor * max(dot(normal, normalize(intersection-lightPosition)), 0) * lightIntensity;
-            specular = specularLighting(normalize(intersection-lightPosition), normal, u);
+            specular = specularLighting(normalize(intersection-lightPosition), normal, u); //les 3 normalisé
             couleurs[compteur] = ambiant + diffuse + specular;
         }
         vec3 reflectedRay = normalize(reflect(u, normal));

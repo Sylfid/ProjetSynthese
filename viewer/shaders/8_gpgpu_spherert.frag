@@ -72,7 +72,7 @@ void main(void)
         vec3 vertNormal = normalize(intersection - center);
         vec3 refractedRay = normalize(refract(u, vertNormal, 1./eta));
         vec3 reflectedRay = normalize(reflect(u, vertNormal));
-        float coeff1 = fresnelCoef(u, vertNormal, eta);
+        float coeff1 = fresnelCoef(u, vertNormal, eta);//les deux bien normalizés
         vec3 intersection2;
         vec4 temp;
         hasIntersect = raySphereIntersect(intersection, refractedRay, true, intersection2);
