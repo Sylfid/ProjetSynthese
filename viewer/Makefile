@@ -35,7 +35,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = myViewer1.0.0
-DISTDIR = /user/7/.base/taconnem/home/GPGPU_TP/viewer/.tmp/myViewer1.0.0
+DISTDIR = /user/7/.base/taconnem/home/3A/ProjetSynthese/viewer/.tmp/myViewer1.0.0
 LINK          = g++
 LFLAGS        = -Wno-unknown-pragmas -fopenmp -Wl,-O1 -Wl,-z,relro
 LIBS          = $(SUBLIBS) -L../trimesh2/lib -ltrimesh -lQt5OpenGL -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
@@ -194,7 +194,6 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/features/qt_config.prf \
 		/usr/lib64/qt5/mkspecs/linux-g++/qmake.conf \
 		/usr/lib64/qt5/mkspecs/features/spec_post.prf \
-		../.qmake.stash \
 		/usr/lib64/qt5/mkspecs/features/exclusive_builds.prf \
 		/usr/lib64/qt5/mkspecs/features/toolchain.prf \
 		/usr/lib64/qt5/mkspecs/features/default_pre.prf \
@@ -364,7 +363,6 @@ Makefile: viewer.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr/lib64/qt5/
 		/usr/lib64/qt5/mkspecs/features/qt_config.prf \
 		/usr/lib64/qt5/mkspecs/linux-g++/qmake.conf \
 		/usr/lib64/qt5/mkspecs/features/spec_post.prf \
-		../.qmake.stash \
 		/usr/lib64/qt5/mkspecs/features/exclusive_builds.prf \
 		/usr/lib64/qt5/mkspecs/features/toolchain.prf \
 		/usr/lib64/qt5/mkspecs/features/default_pre.prf \
@@ -524,7 +522,6 @@ Makefile: viewer.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr/lib64/qt5/
 /usr/lib64/qt5/mkspecs/features/qt_config.prf:
 /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf:
 /usr/lib64/qt5/mkspecs/features/spec_post.prf:
-../.qmake.stash:
 /usr/lib64/qt5/mkspecs/features/exclusive_builds.prf:
 /usr/lib64/qt5/mkspecs/features/toolchain.prf:
 /usr/lib64/qt5/mkspecs/features/default_pre.prf:
@@ -574,6 +571,7 @@ clean: compiler_clean
 
 distclean: clean 
 	-$(DEL_FILE) $(TARGET) 
+	-$(DEL_FILE) .qmake.stash
 	-$(DEL_FILE) Makefile
 
 
@@ -601,7 +599,7 @@ compiler_moc_header_clean:
 moc_openglwindow.cpp: src/openglwindow.h \
 		moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/user/7/.base/taconnem/home/GPGPU_TP/viewer -I/user/7/.base/taconnem/home/GPGPU_TP/trimesh2/include -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/opt/rh/devtoolset-8/root/usr/include/c++/8 -I/opt/rh/devtoolset-8/root/usr/include/c++/8/x86_64-redhat-linux -I/opt/rh/devtoolset-8/root/usr/include/c++/8/backward -I/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include -I/usr/local/include -I/opt/rh/devtoolset-8/root/usr/include -I/usr/include src/openglwindow.h -o moc_openglwindow.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/user/7/.base/taconnem/home/3A/ProjetSynthese/viewer -I/user/7/.base/taconnem/home/3A/ProjetSynthese/trimesh2/include -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/opt/rh/devtoolset-8/root/usr/include/c++/8 -I/opt/rh/devtoolset-8/root/usr/include/c++/8/x86_64-redhat-linux -I/opt/rh/devtoolset-8/root/usr/include/c++/8/backward -I/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include -I/usr/local/include -I/opt/rh/devtoolset-8/root/usr/include -I/usr/include src/openglwindow.h -o moc_openglwindow.cpp
 
 moc_glshaderwindow.cpp: src/openglwindow.h \
 		../trimesh2/include/TriMesh.h \
@@ -612,7 +610,7 @@ moc_glshaderwindow.cpp: src/openglwindow.h \
 		src/glshaderwindow.h \
 		moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/user/7/.base/taconnem/home/GPGPU_TP/viewer -I/user/7/.base/taconnem/home/GPGPU_TP/trimesh2/include -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/opt/rh/devtoolset-8/root/usr/include/c++/8 -I/opt/rh/devtoolset-8/root/usr/include/c++/8/x86_64-redhat-linux -I/opt/rh/devtoolset-8/root/usr/include/c++/8/backward -I/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include -I/usr/local/include -I/opt/rh/devtoolset-8/root/usr/include -I/usr/include src/glshaderwindow.h -o moc_glshaderwindow.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/user/7/.base/taconnem/home/3A/ProjetSynthese/viewer -I/user/7/.base/taconnem/home/3A/ProjetSynthese/trimesh2/include -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/opt/rh/devtoolset-8/root/usr/include/c++/8 -I/opt/rh/devtoolset-8/root/usr/include/c++/8/x86_64-redhat-linux -I/opt/rh/devtoolset-8/root/usr/include/c++/8/backward -I/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include -I/usr/local/include -I/opt/rh/devtoolset-8/root/usr/include -I/usr/include src/glshaderwindow.h -o moc_glshaderwindow.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
