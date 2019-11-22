@@ -282,7 +282,7 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
 
         newPoint = intersectionSol;
         newDirection = vec4(reflect(dir.xyz, vec3(0,1,0)),0);
-        coefFres = fresnelCoef(intersectionSol.xyz-lightPosition, vec3(0,1,0), 0.5); ///dernier para eta du sol
+        coefFres = fresnelCoef(intersectionSol.xyz-lightPosition, vec3(0,1,0), eta); ///dernier para eta du sol
         jprec2 = -1;
         flag2=false;
         if(isIntersected3(intersectionSol, (intersectionSol - vec4(lightPosition, 1)), -1, h2)) {

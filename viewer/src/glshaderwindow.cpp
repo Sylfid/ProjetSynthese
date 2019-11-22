@@ -642,7 +642,13 @@ void glShaderWindow::setWindowSize(const QString& size)
 void glShaderWindow::setShader(const QString& shader)
 {
     // Prepare a complete shader program...
+    QString actualShader = "gpgpu_fullrt";
+    if(actualShader == shader){
+        isActualShaderComp = true;
+    }
+    else{isActualShaderComp = false;}
 	QString shaderPath = workingDirectory + "../shaders/";
+    printf(shader.toStdString().c_str());
     QDir shadersDir = QDir(shaderPath);
     QString shader2 = shader + "*";
     QStringList shaders = shadersDir.entryList(QStringList(shader2));
@@ -954,6 +960,11 @@ void glShaderWindow::mouseToTrackball(QVector2D &mousePosition, QVector3D &space
 // virtual trackball implementation
 void glShaderWindow::mousePressEvent(QMouseEvent *e)
 {
+    if(isActualShaderComp == true){
+        QString shader = "2_phong";
+        setShader(shader);
+        isActualShaderComp=true;
+    }
     lastMousePosition = (2.0/m_screenSize) * (QVector2D(e->localPos()) - QVector2D(0.5 * width(), 0.5*height()));
     mouseToTrackball(lastMousePosition, lastTBPosition);
     mouseButton = e->button();
@@ -1021,6 +1032,10 @@ void glShaderWindow::mouseMoveEvent(QMouseEvent *e)
 
 void glShaderWindow::mouseReleaseEvent(QMouseEvent *e)
 {
+    if(isActualShaderComp==true){
+        QString shader = "gpgpu_fullrt";
+        setShader(shader);
+    }
     mouseButton = Qt::NoButton;
 }
 

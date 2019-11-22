@@ -145,6 +145,7 @@ private:
     int shadowMapDimension;
     // User interface variables
     bool fullScreenSnapshots;
+    bool isActualShaderComp;
     QStringList m_fragShaderSuffix;
     QStringList m_vertShaderSuffix;
     QStringList m_compShaderSuffix;
