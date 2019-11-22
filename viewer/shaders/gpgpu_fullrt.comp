@@ -257,7 +257,7 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
 
         newPoint = intersection;
         newDirection = vec4(reflect(dir.xyz, vec3(interpolateNormal(h))),0);
-        coefFres = fresnelCoef(normalize(intersection.xyz-lightPosition), interpolateNormal(h).xyz, eta);
+        coefFres = fresnelCoef(-normalize(intersection.xyz-lightPosition), interpolateNormal(h).xyz, eta);
         jprec2 = h.hit_vptr;
 
         vec4 ambiant = ka * vertColor * lightIntensity;
@@ -265,14 +265,14 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
         //intersection-vec4(lightPosition) ??
 
         flag2=false;
-        if(isIntersected3(intersection, (intersection - vec4(lightPosition, 1)), h.hit_vptr, h2)) {
+        if(isIntersected3(intersection, -(intersection - vec4(lightPosition, 1)), h.hit_vptr, h2)) {
             // On est à l'ombre, donc que l'ambiant
             return(ambiant);
         }
         else { // On est au soleil, donc full illumination
             vec4 normal = interpolateNormal(h);
-            vec4 diffuse = kd * vertColor * max(dot(normalize(normal.xyz), normalize(intersection.xyz-lightPosition)), 0) * lightIntensity; //ok
-            vec4 specular = specularLighting(normalize(intersection.xyz-lightPosition), normalize(normal.xyz), normalize(dir.xyz), vertColor, eta); //ok
+            vec4 diffuse = kd * vertColor * max(dot(normalize(normal.xyz), -normalize(intersection.xyz-lightPosition)), 0) * lightIntensity; //ok
+            vec4 specular = specularLighting(-normalize(intersection.xyz-lightPosition), normalize(normal.xyz), normalize(dir.xyz), vertColor, eta); //ok
             return(ambiant + diffuse + specular);
         }
     }
@@ -283,15 +283,15 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
 
         newPoint = intersectionSol;
         newDirection = vec4(reflect(dir.xyz, vec3(0,1,0)),0);
-        coefFres = fresnelCoef(normalize(intersectionSol.xyz-lightPosition), normalize(vec3(0,1,0)), eta); ///dernier para eta du sol
+        coefFres = fresnelCoef(-normalize(intersectionSol.xyz-lightPosition), normalize(vec3(0,1,0)), eta); ///dernier para eta du sol
         jprec2 = -1;
         flag2=false;
-        if(isIntersected3(intersectionSol, (intersectionSol - vec4(lightPosition, 1)), -1, h2)) {
+        if(isIntersected3(intersectionSol, -(intersectionSol - vec4(lightPosition, 1)), -1, h2)) {
             return(ambiant);
         } else {
             vec4 normal = vec4(0,1,0,0);
-            vec4 diffuse = kd * vertColor * max(dot(normalize(normal.xyz), normalize(intersectionSol.xyz-lightPosition)), 0) * lightIntensity;
-            vec4 specular = specularLighting(normalize(intersectionSol.xyz-lightPosition), normalize(normal.xyz), normalize(dir.xyz), vertColor, 1.); //ok
+            vec4 diffuse = kd * vertColor * max(dot(normalize(normal.xyz), -normalize(intersectionSol.xyz-lightPosition)), 0) * lightIntensity;
+            vec4 specular = specularLighting(-normalize(intersectionSol.xyz-lightPosition), normalize(normal.xyz), normalize(dir.xyz), vertColor, 1.); //ok
             return(ambiant + diffuse + specular);
         }
         //return(vec4(0.5,0.5,0.5,1));

@@ -28,14 +28,17 @@ vec4 getColorFromEnvironment(in vec3 direction)
 bool raySphereIntersect(in vec3 start, in vec3 direction, in bool boule, out vec3 newPoint) {
     float det = pow(2*dot(direction,start-center),2) - 4*( pow(length(start-center),2) -pow(radius,2) );
     if(det>0){
-      float racine;
-      if(boule) {
+        float racine;
+        if(boule) {
           racine = ( -2* dot(direction,start-center) + sqrt(det) )/2;
-      } else {
-          racine = ( -2* dot(direction,start-center) - sqrt(det) )/2;
-      }
-      newPoint = start + racine * normalize(direction);
-      return true;
+        } else {
+            if(racine < 0.){
+                return false;
+            }
+            racine = ( -2* dot(direction,start-center) - sqrt(det) )/2;
+        }
+        newPoint = start + racine * normalize(direction);
+        return true;
     }
     return false;
 }
@@ -76,42 +79,48 @@ void main(void)
         vec3 intersection2;
         vec4 temp;
         hasIntersect = raySphereIntersect(intersection, refractedRay, true, intersection2);
-        if(hasIntersect) {
-            vertNormal = normalize(center - intersection2);
-            vec3 refractedRay2 = normalize(refract(normalize(refractedRay), vertNormal, eta));
-            vec3 reflectedRay2 = normalize(reflect(normalize(refractedRay), vertNormal));
-            float coeff2 = fresnelCoef(normalize(refractedRay), vertNormal, 1./eta);
-            temp = coeff2 * getColorFromEnvironment(reflectedRay2) + (1-coeff2) * getColorFromEnvironment(refractedRay2);
-            resultColor = coeff1 * getColorFromEnvironment(reflectedRay) + (1-coeff1) * temp;
-            //resultColor = vec4(0,0,0,1);
-            vec3 intersection3;
-            hasIntersect = raySphereIntersect(intersection2, refractedRay, true, intersection3);
+        if(transparent == true){
             if(hasIntersect) {
-                vertNormal = normalize(center - intersection3);
-                vec3 refractedRay3 = normalize(refract(normalize(refractedRay2), vertNormal, 1./eta));
-                vec3 reflectedRay3 = normalize(reflect(normalize(refractedRay2), vertNormal));
-                float coeff3 = fresnelCoef(normalize(refractedRay2), vertNormal, eta);
-                temp = coeff3 * getColorFromEnvironment(reflectedRay3) + (1-coeff3) * getColorFromEnvironment(refractedRay3);
-                temp = coeff2 * getColorFromEnvironment(reflectedRay2) + (1-coeff2) * temp;
+                vertNormal = normalize(center - intersection2);
+                vec3 refractedRay2 = normalize(refract(normalize(refractedRay), vertNormal, eta));
+                vec3 reflectedRay2 = normalize(reflect(normalize(refractedRay), vertNormal));
+                float coeff2 = fresnelCoef(normalize(refractedRay), vertNormal, 1./eta);
+                temp = coeff2 * getColorFromEnvironment(reflectedRay2) + (1-coeff2) * getColorFromEnvironment(refractedRay2);
                 resultColor = coeff1 * getColorFromEnvironment(reflectedRay) + (1-coeff1) * temp;
-                vec3 intersection4;
-                hasIntersect = raySphereIntersect(intersection3, refractedRay, true, intersection4);
+                //resultColor = vec4(0,0,0,1);
+                vec3 intersection3;
+                hasIntersect = raySphereIntersect(intersection2, refractedRay, true, intersection3);
                 if(hasIntersect) {
-                    vertNormal = normalize(center - intersection4);
-                    vec3 refractedRay4 = normalize(refract(normalize(refractedRay3), vertNormal, eta));
-                    vec3 reflectedRay4 = normalize(reflect(normalize(refractedRay3), vertNormal));
-                    float coeff4 = fresnelCoef(normalize(refractedRay3), vertNormal, 1./eta);
-                    temp = coeff4 * getColorFromEnvironment(reflectedRay4) + (1-coeff3) * getColorFromEnvironment(refractedRay4);
-                    temp = coeff3 * getColorFromEnvironment(reflectedRay3) + (1-coeff3) * temp;
+                    vertNormal = normalize(center - intersection3);
+                    vec3 refractedRay3 = normalize(refract(normalize(refractedRay2), vertNormal, 1./eta));
+                    vec3 reflectedRay3 = normalize(reflect(normalize(refractedRay2), vertNormal));
+                    float coeff3 = fresnelCoef(normalize(refractedRay2), vertNormal, eta);
+                    temp = coeff3 * getColorFromEnvironment(reflectedRay3) + (1-coeff3) * getColorFromEnvironment(refractedRay3);
                     temp = coeff2 * getColorFromEnvironment(reflectedRay2) + (1-coeff2) * temp;
-                    if(coeff1 == 0){
-                      resultColor = getColorFromEnvironment(u);
-                    }else{
-                      resultColor = coeff1 * getColorFromEnvironment(reflectedRay) + (1-coeff1) * temp;
+                    resultColor = coeff1 * getColorFromEnvironment(reflectedRay) + (1-coeff1) * temp;
+                    vec3 intersection4;
+                    hasIntersect = raySphereIntersect(intersection3, refractedRay, true, intersection4);
+                    if(hasIntersect) {
+                        vertNormal = normalize(center - intersection4);
+                        vec3 refractedRay4 = normalize(refract(normalize(refractedRay3), vertNormal, eta));
+                        vec3 reflectedRay4 = normalize(reflect(normalize(refractedRay3), vertNormal));
+                        float coeff4 = fresnelCoef(normalize(refractedRay3), vertNormal, 1./eta);
+                        temp = coeff4 * getColorFromEnvironment(reflectedRay4) + (1-coeff3) * getColorFromEnvironment(refractedRay4);
+                        temp = coeff3 * getColorFromEnvironment(reflectedRay3) + (1-coeff3) * temp;
+                        temp = coeff2 * getColorFromEnvironment(reflectedRay2) + (1-coeff2) * temp;
+                        if(coeff1 == 0){
+                          resultColor = getColorFromEnvironment(u);
+                        }else{
+                          resultColor = coeff1 * getColorFromEnvironment(reflectedRay) + (1-coeff1) * temp;
+                        }
                     }
                 }
             }
         }
+        else{
+            resultColor = getColorFromEnvironment(reflectedRay)*coeff1;
+        }
+
     } else {
         resultColor = getColorFromEnvironment(u);
     }
