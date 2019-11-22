@@ -51,21 +51,14 @@ float fresnel(in vec3 lightVector, in vec3 normal, in float etaU) {
 }
 
 float NormalDistrib(float costhetaH, float alpha){
-
-
-
-    if(costhetaH >=0 && costhetaH < 1 ){
-
-
+    if(costhetaH >0 && costhetaH <= 1 ){
         float costhetaH2 = costhetaH * costhetaH;
-        float frac1 = 1 / (costhetaH2 * costhetaH2 * PI);
-        float tanThetaSquare = (1 - costhetaH2) / costhetaH2;
-
-
+        float frac1 = 1 / (costhetaH2 * costhetaH2 * PI);// 1/(cos**4*PI)
+        float tanThetaSquare = (1 - costhetaH2) / costhetaH2; // sin**2/cos**2
         float frac2 = alpha  / (alpha*alpha + tanThetaSquare);
         frac2 = frac2 * frac2;
-
-        return frac1 * frac2;
+        //return frac1 * frac2;
+        return alpha*alpha/(PI*costhetaH2*costhetaH2*(alpha*alpha+tanThetaSquare)*(alpha*alpha+tanThetaSquare));
 
     }
     else{
@@ -75,9 +68,7 @@ float NormalDistrib(float costhetaH, float alpha){
 }
 
 float GGXDistrib(float cosTheta, float alpha){
-    //if(cosTheta< 0.00001){
-      //return 0;
-    //}
+
      float tanThetaSquare = (1 - cosTheta * cosTheta)/(cosTheta * cosTheta);
      return 2/( 1 + sqrt(1 + tanThetaSquare * alpha * alpha));
 }
@@ -88,8 +79,8 @@ void main( void )
 {
      // This is the place where there's work to be done
 
-     float ka = 0.1;
-     float kd = 0.5;
+     float ka = 0.7;
+     float kd = 0.8;
      vec4 vNull;
 
      //Ambient lighting ca
@@ -103,8 +94,8 @@ void main( void )
 
      //float costheta = dot(normalize(lightVector), normalize(vertNormal));       //si bien normalise
      vec4 h = normalize(normalize(eyeVector) + normalize(lightVector)); //vector H
-     float costhetaD = dot(normalize(lightVector), h);
-     
+     float costhetaD = dot(h, normalize(lightVector));
+
      float f = fresnel(vec3(normalize(lightVector)), vec3(h), eta);
 
 
@@ -115,14 +106,13 @@ void main( void )
     }
      else{
         float new_alpha = (200 - shininess)/200;
-        float costhetaH = dot(normalize(vertNormal),h);
-        float costhetaI = dot(normalize(vertNormal), normalize(lightVector));
-
-        float costhetaO = dot(normalize(vertNormal), normalize(eyeVector));
+        float costhetaH = abs(dot(normalize(vertNormal),h));
+        float costhetaI = abs(dot(normalize(vertNormal), normalize(lightVector)));
+        float costhetaO = abs(dot(normalize(vertNormal), normalize(eyeVector)));
         float g1_i = GGXDistrib(costhetaI, new_alpha);
         float g1_o = GGXDistrib(costhetaO, new_alpha);
         float Do_h = NormalDistrib(costhetaH, new_alpha);
-        cs =  f *vertColor* lightIntensity  *Do_h *g1_o*g1_i  /(4 * costhetaI * costhetaO);
+        cs =  f *vertColor  *Do_h *g1_o*g1_i  /(4 * costhetaI * costhetaO)* lightIntensity;
 
      }
 
@@ -130,6 +120,6 @@ void main( void )
 
 
      //fragColor = vertColor;
-     fragColor = cs ;//+ca + cd ;//+ cs;
+     fragColor = cs ;//+ ca + cd ;//+ cs;
 
 }
