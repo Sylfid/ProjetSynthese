@@ -336,12 +336,12 @@ vec4 getIndirectLighting(in vec4 origin, in vec4 dir){
     while(i<2){
         colors[i] = trace(newPoint, newDirection, jprec, secondPoint, newDirection2, coefFres2, flag, jprec2);
 
-        if(i!=0){
+        //if(i!=0){
             coefFres[i] = coefFres2;
-        }
-        else{
-          coefFres[i]=1;
-        }
+      //  }
+      //  else{
+      //    coefFres[i]=1;
+      //  }
         newPoint = secondPoint;
         newDirection = newDirection2;
         jprec = jprec2;
