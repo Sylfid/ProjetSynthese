@@ -92,7 +92,7 @@ void main( void )
         float g1_i = GGXDistrib(costhetaI, alpha);
         float g1_o = GGXDistrib(costhetaO, alpha);
         float Do_h = NormalDistrib(costhetaH, alpha);
-        cs = vertColor * lightIntensity * f * g1_o *g1_i * Do_h /4 / costhetaI / costhetaO, shininess);
+        cs = vertColor * lightIntensity * f * g1_o *g1_i * Do_h /4 / costhetaI / costhetaO;
      }
 
 
