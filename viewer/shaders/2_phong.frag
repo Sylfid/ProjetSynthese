@@ -18,7 +18,7 @@ in vec4 lightSpace;
 
 out vec4 fragColor;
 
-float fresnel(float costheta){
+float fresnel2(float costheta){
 
     float eta2 = eta*eta;
     float ci = sqrt( eta2 - (1- costheta*costheta));
@@ -34,6 +34,19 @@ float fresnel(float costheta){
     if (f>1.){
       f = 1.;}
 
+    return f;
+}
+
+float fresnel(in vec3 lightVector, in vec3 normal, in float etaU) {
+    float costheta = dot(lightVector, normal);       //si bien normalise
+    float ci = sqrt( pow((etaU), 2) - (1- pow(costheta, 2)));
+
+    float fs = pow( abs( (costheta  - ci) / (costheta  + ci) ),2);
+    float fp = pow( abs( (pow((etaU),2)*costheta  - ci) / (pow((etaU),2)*costheta  + ci)) ,2);
+    float f = (fs + fp)/2.;
+    if(f>1.){
+        return 1.;
+    }
     return f;
 }
 
@@ -92,13 +105,13 @@ void main( void )
      vec4 h = normalize(normalize(eyeVector) + normalize(lightVector)); //vector H
      float costhetaD = dot(normalize(lightVector), h);
      
-     float f = fresnel(costhetaD);
+     float f = fresnel(vec3(normalize(lightVector)), vec3(h), eta);
 
 
      vec4 cs ;  //initialization
 
      if(blinnPhong){
-        cs =  vertColor * pow(max(dot( normalize(vertNormal), h), 0), shininess) * lightIntensity;
+        cs =  f * vertColor * pow(max(dot( normalize(vertNormal), h), 0), shininess) * lightIntensity;
     }
      else{
         float new_alpha = (200 - shininess)/200;
@@ -117,6 +130,6 @@ void main( void )
 
 
      //fragColor = vertColor;
-     fragColor = cs +ca + cd ;//+ cs;
+     fragColor = cs ;//+ca + cd ;//+ cs;
 
 }
