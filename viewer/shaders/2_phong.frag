@@ -96,14 +96,14 @@ void main( void )
         cs =  f*vertColor * pow(max(dot( normalize(vertNormal), h), 0), shininess) * lightIntensity;
     }
      else{
-
+        float new_alpha = (200 - shininess)/200;
         float costhetaH = dot(normalize(vertNormal),h);
         float costhetaI = dot(normalize(vertNormal), -normalize(lightVector));
         float costhetaO = dot(normalize(vertNormal), normalize(eyeVector));
-        float g1_i = GGXDistrib(costhetaI, alpha);
-        float g1_o = GGXDistrib(costhetaO, alpha);
-        float Do_h = NormalDistrib(costhetaH, alpha);
-        cs = vertColor * lightIntensity * f * g1_o *g1_i * Do_h /4 / costhetaI / costhetaO;
+        float g1_i = GGXDistrib(costhetaI, new_alpha);
+        float g1_o = GGXDistrib(costhetaO, new_alpha);
+        float Do_h = NormalDistrib(costhetaH, new_alpha);
+        cs =  f *vertColor* lightIntensity * g1_o *g1_i * Do_h /4 / costhetaI / costhetaO;
      }
 
 
