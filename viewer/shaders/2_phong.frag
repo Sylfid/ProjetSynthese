@@ -40,7 +40,9 @@ float fresnel(float costheta){
 float NormalDistrib(float costhetaH, float alpha, ){
 
 
-    if((costhetaH > 0.)){
+
+    if(costhetaH >=0 && costhetaH < 1 ){
+
 
         float costhetaH2 = costhetaH * costhetaH;
         float frac1 = 1 / (costhetaH2 * costhetaH2 * PI);
@@ -85,29 +87,30 @@ void main( void )
 
      //Specular lighting cs
 
-     float costheta = dot(normalize(lightVector), normalize(vertNormal));       //si bien normalise
-     vec4 h = normalize(vertNormal + lightVector); //vector H
-     float f = fresnel(costheta);
 
-     float cosalphaplustheta = dot(normalize(eyeVector), normalize(vertNormal));
-     float alphaplustheta = acos(cosalphaplustheta);
-     float alpha = alphaplustheta - theta;
-     float tanthetacarre = (1-costheta*costheta)/(costheta * costheta);
+     //float costheta = dot(normalize(lightVector), normalize(vertNormal));       //si bien normalise
+     vec4 h = normalize(normalize(eyeVector) + normalize(lightVector)); //vector H
+     float costhetaD = dot(normalize(lightVector), h);
+     
+     float f = fresnel(costhetaD);
+
 
      vec4 cs ;  //initialization
 
      if(blinnPhong){
-        cs =  f*vertColor * pow(max(dot( normalize(vertNormal), h), 0), shininess) * lightIntensity;
+        cs =  vertColor * pow(max(dot( normalize(vertNormal), h), 0), shininess) * lightIntensity;
     }
      else{
         float new_alpha = (200 - shininess)/200;
         float costhetaH = dot(normalize(vertNormal),h);
         float costhetaI = dot(normalize(vertNormal), normalize(lightVector));
+
         float costhetaO = dot(normalize(vertNormal), normalize(eyeVector));
         float g1_i = GGXDistrib(costhetaI, new_alpha);
         float g1_o = GGXDistrib(costhetaO, new_alpha);
         float Do_h = NormalDistrib(costhetaH, new_alpha);
         cs =  f *vertColor* lightIntensity  *Do_h *g1_o*g1_i  /(4 * costhetaI * costhetaO);
+
      }
 
 

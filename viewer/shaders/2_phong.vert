@@ -29,9 +29,18 @@ void main( void )
     // TODO: compute eyeVector, lightVector.
 
 
-    eyeVector = normalize(matrix * vertex);
+    /*eyeVector = normalize(matrix * vertex);
     vec4 shadingNormal = normalize(normal); //util ?
-    lightVector = normalize( matrix * vec4(lightPosition,1));  //a verif pour le matrix * vertex- ajouté devant
+    lightVector = normalize( matrix * vec4(lightPosition,1));  //a verif pour le matrix * vertex- ajouté devant*/
+
+    vec4 position = matrix * vec4(lightPosition, 1);
+    lightVector = matrix * vertex - position;
+    lightVector.w = 0;
+    lightVector = -normalize(lightVector);
+
+    eyeVector =  vec4(0,0,0,1) - matrix * vertex;
+    eyeVector.w = 0;
+    eyeVector = normalize(eyeVector);
 
 
 
