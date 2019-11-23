@@ -59,6 +59,23 @@ float fresnelCoef(in vec3 lightVector, in vec3 normal, in float nu) {
     return f;
 }
 
+float fresnelFactoriser(in vec3 lightVector, in vec3 normal, in float etaU) {
+    float costheta = dot(lightVector, normal);       //si bien normalise
+    float ci = sqrt( etaU*etaU - (1- costheta*costheta));
+
+    float fs = (costheta  - ci) / (costheta + ci);
+    fs = fs * fs;
+    float fp = pow( abs( (pow((etaU),2)*costheta  - ci) / (pow((etaU),2)*costheta  + ci)) ,2);
+    float fp = (etaU*etU*costheta - ci) / (etaU*etaU*costheta + ci);
+    fp = fp*fp;
+    float f = (fs + fp)/2.;
+    if(f>1.){
+        return 1.;
+    }
+    return f;
+}
+
+
 bool rayPlaneIntersection(vec4 origin, vec4 dir, out vec4 intersection) {
     float x = dir.x * ((-groundDistance-origin.y) / dir.y) + origin.x;
     float z = dir.z * ((-groundDistance-origin.y) / dir.y) + origin.z;
@@ -72,9 +89,10 @@ bool rayPlaneIntersection(vec4 origin, vec4 dir, out vec4 intersection) {
 bool rayPlaneIntersection2(vec4 origin, vec4 dir, out vec4 intersection, out float lambda) {
     vec3 normal = vec3(0,1,0);
     float ps = dot(dir.xyz,normal);
+    vec4 originNorma = normalizeVec4(origin);
     if(ps!=0){
-        lambda = dot(vec3(0,-groundDistance,0)-vec3(normalizeVec4(origin)), normal.xyz)/ps;
-        intersection = normalizeVec4(origin) + lambda*dir;
+        lambda = dot(vec3(0,-groundDistance,0)-vec3(originNorma), normal.xyz)/ps;
+        intersection = originNorma + lambda*dir;
     }
     else{
         return false;
@@ -151,7 +169,8 @@ vec4 interpolateColor(hitinfo_t h)
 	 return vec4(1);
 }
 
-bool isIntersected(vec4 origin, vec4 dir, out hitinfo_t h)
+// A supprimer :
+/*bool isIntersected(vec4 origin, vec4 dir, out hitinfo_t h)
 {
     vec4 dist; // stores distance + barycentric coord
     bool hit = false;
@@ -159,11 +178,11 @@ bool isIntersected(vec4 origin, vec4 dir, out hitinfo_t h)
   	if(intersectBoundingBox(origin, dir)) {
     		for(int j = 0; j < indices.length(); j += 3) {
       			if(intersectTriangle(origin, dir, j, dist)) {
-                if(dist.x < h.t.x) {
-                    h.t =  dist;
-                    h.hit_vptr = j;
-                    hit = true;
-                }
+                            if(dist.x < h.t.x) {
+                                h.t =  dist;
+                                h.hit_vptr = j;
+                                hit = true;
+                            }
       			}
     		}
   	}
@@ -182,7 +201,7 @@ bool isIntersected2(vec4 origin, vec4 dir, int jprec, bool sur_obj)
         }
 		}
   	return hit;
-}
+}*/
 
 bool isIntersected3(in vec4 origin, in vec4 dir, in int jprec, out hitinfo_t h)
 {
@@ -191,15 +210,15 @@ bool isIntersected3(in vec4 origin, in vec4 dir, in int jprec, out hitinfo_t h)
   	h.t.x = radius * MAX_SCENE_BOUNDS;
   	if(intersectBoundingBox(origin, dir)) {
     		for(int j = 0; j < indices.length(); j += 3) {
-                if(j != jprec) {
-                    if(intersectTriangle(origin, dir, j, dist)) {
-                        if(dist.x < h.t.x) {
-                            h.t =  dist;
-                            h.hit_vptr = j;
-                            hit = true;
+                    if(j != jprec) {
+                        if(intersectTriangle(origin, dir, j, dist)) {
+                            if(dist.x < h.t.x) {
+                                h.t =  dist;
+                                h.hit_vptr = j;
+                                hit = true;
+                            }
                         }
                     }
-                }
     		}
   	}
   	return hit;
@@ -216,6 +235,21 @@ vec4 specularLighting(in vec3 lightVector, in vec3 normal, in vec3 u, in vec4 ve
     float alpha = alphaplustheta - theta;
     float tanthetacarre = (1-pow(costheta,2))/pow(costheta,2);
     float g1 = 2 / ( 1 + pow(1 +pow(alpha,2)*tanthetacarre ,1/2) );
+    vec4 cs = f * vertColor * pow(max(dot(normal, h), 0), shininess) * lightIntensity;
+    return cs;
+}
+
+vec4 specularLightingFactorise(in vec3 lightVector, in vec3 normal, in vec3 u, in vec4 vertColor, in float nu) { //normalizés dans l'appel
+
+    float costheta = dot(lightVector, normal);
+    vec3 h = normalize(normal + lightVector); //vector H
+    float f = fresnelCoef(lightVector, normal, nu);
+    float theta = acos(costheta);
+    float cosalphaplustheta = dot(u, normal);
+    float alphaplustheta = acos(cosalphaplustheta);
+    float alpha = alphaplustheta - theta;
+    float tanthetacarre = (1-costheta*costheta)/(costheta*costheta);
+    float g1 = 2 / ( 1 + sqrt(1 +alpha*alpha*tanthetacarre) );
     vec4 cs = f * vertColor * pow(max(dot(normal, h), 0), shininess) * lightIntensity;
     return cs;
 }
@@ -320,28 +354,10 @@ vec4 getIndirectLighting(in vec4 origin, in vec4 dir){
     vec4 colorFinal = vec4(0,0,0,1);
     int jprec = -1;
     int jprec2 = 0;
-    /*
-    colors[0] = trace(newPoint, newDirection, jprec, secondPoint, newDirection2, coefFres2, flag, jprec2);
-    coefFres[i]=1;
-    newPoint = secondPoint;
-    newDirection = newDirection2;
-    jprec = jprec2;
-    if(flag == false){
-        colors[1] = trace(newPoint, newDirection, jprec, secondPoint, newDirection2, coefFres2, flag, jprec2);
-        coefFres[1] = coefFres2;
-        newPoint = secondPoint;
-        newDirection = newDirection2;
-    }*/
 
     while(i<2){
         colors[i] = trace(newPoint, newDirection, jprec, secondPoint, newDirection2, coefFres2, flag, jprec2);
 
-        //if(i!=0){
-            coefFres[i] = coefFres2;
-      //  }
-      //  else{
-      //    coefFres[i]=1;
-      //  }
         newPoint = secondPoint;
         newDirection = newDirection2;
         jprec = jprec2;
@@ -353,7 +369,7 @@ vec4 getIndirectLighting(in vec4 origin, in vec4 dir){
     for(int j=i-1; j>-1; j--){
         colorFinal=coefFres[j]*(colorFinal + colors[j]);
     }
-    //return colors[0]+coefFres[1]*(colors[1]+coefFres[2]*colors[2]);
+
     return colorFinal;
 }
 
