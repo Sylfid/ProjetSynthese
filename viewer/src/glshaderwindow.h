@@ -34,6 +34,7 @@ public:
 public slots:
     void openSceneFromFile();
     void openNewTexture();
+    void loadTexture();
     void openNewEnvMap();
     void saveScene();
     void toggleFullScreen();
@@ -146,6 +147,8 @@ private:
     // User interface variables
     bool fullScreenSnapshots;
     bool isActualShaderComp;
+    QString actualTexture;
+
     QStringList m_fragShaderSuffix;
     QStringList m_vertShaderSuffix;
     QStringList m_compShaderSuffix;

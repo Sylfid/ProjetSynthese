@@ -123,6 +123,7 @@ void glShaderWindow::openNewTexture() {
     int ret = dialog.exec();
     if (ret == QDialog::Accepted) {
         textureName = dialog.selectedFiles()[0];
+        actualTexture = textureName;
         if (!textureName.isNull()) {
             if (texture) {
                 texture->release();
@@ -144,6 +145,25 @@ void glShaderWindow::openNewTexture() {
     }
 }
 
+void glShaderWindow::loadTexture(){
+
+    if (texture) {
+        texture->release();
+        texture->destroy();
+        delete texture;
+        texture = 0;
+    }
+    glActiveTexture(GL_TEXTURE0);
+    // the shader wants a texture. We load one.
+    texture = new QOpenGLTexture(QImage(actualTexture));
+    if (texture) {
+        texture->setWrapMode(QOpenGLTexture::Repeat);
+        texture->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
+        texture->setMagnificationFilter(QOpenGLTexture::Linear);
+        texture->bind(0);
+    }
+    renderNow();
+}
 
 void glShaderWindow::openNewEnvMap() {
     QFileDialog dialog(0, "Open environment map image", workingDirectory + "../textures/", "*.png *.PNG *.jpg *.JPG");
@@ -809,6 +829,7 @@ void glShaderWindow::initialize()
     // Debug: which OpenGL version are we running? Must be >= 3.2 for shaders,
     // >= 4.3 for compute shaders.
     isActualShaderComp = false;
+    actualTexture = "";
     qDebug("OpenGL initialized: version: %s GLSL: %s", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
     // Set the clear color to black
     glClearColor( 0.2f, 0.2f, 0.2f, 1.0f );
@@ -963,7 +984,11 @@ void glShaderWindow::mousePressEvent(QMouseEvent *e)
     if(isActualShaderComp == true){
         QString shader = "2_phong";
         setShader(shader);
+        QString textureA = "";
         isActualShaderComp=true;
+        if(textureA != actualTexture){
+            loadTexture();
+        }
     }
     lastMousePosition = (2.0/m_screenSize) * (QVector2D(e->localPos()) - QVector2D(0.5 * width(), 0.5*height()));
     mouseToTrackball(lastMousePosition, lastTBPosition);
@@ -1035,6 +1060,10 @@ void glShaderWindow::mouseReleaseEvent(QMouseEvent *e)
     if(isActualShaderComp==true){
         QString shader = "gpgpu_fullrt";
         setShader(shader);
+        QString textureA = "";
+        if(textureA != actualTexture){
+            loadTexture();
+        }
     }
     mouseButton = Qt::NoButton;
 }
