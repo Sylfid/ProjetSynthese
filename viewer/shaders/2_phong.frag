@@ -38,7 +38,7 @@ float fresnel2(float costheta){
     return f;
 }
 
-float fresnel(in vec3 lightVector, in vec3 normal, in float etaU) {
+float fresnelNONFACTORISE(in vec3 lightVector, in vec3 normal, in float etaU) {
     float costheta = dot(lightVector, normal);       //si bien normalise
     float ci = sqrt( pow((etaU), 2) - (1- pow(costheta, 2)));
 
@@ -51,14 +51,13 @@ float fresnel(in vec3 lightVector, in vec3 normal, in float etaU) {
     return f;
 }
 
-float fresnelFactoriser(in vec3 lightVector, in vec3 normal, in float etaU) {
+float fresnel(in vec3 lightVector, in vec3 normal, in float etaU) {
     float costheta = dot(lightVector, normal);       //si bien normalise
     float ci = sqrt( etaU*etaU - (1- costheta*costheta));
 
     float fs = (costheta  - ci) / (costheta + ci);
     fs = fs * fs;
-    float fp = pow( abs( (pow((etaU),2)*costheta  - ci) / (pow((etaU),2)*costheta  + ci)) ,2);
-    float fp = (etaU*etU*costheta - ci) / (etaU*etaU*costheta + ci);
+    float fp = (etaU*etaU*costheta - ci) / (etaU*etaU*costheta + ci);
     fp = fp*fp;
     float f = (fs + fp)/2.;
     if(f>1.){
@@ -113,7 +112,7 @@ void main( void )
      //Specular lighting cs
 
 
-     vec4 h = normalize(eyeVectorNormalise + lightVectorNormalise)); //vector H
+     vec4 h = normalize(eyeVectorNormalise + lightVectorNormalise); //vector H
      float costhetaD = dot(h, lightVectorNormalise);
 
      float f = fresnel(vec3(lightVectorNormalise), vec3(h), eta);
@@ -139,51 +138,3 @@ void main( void )
      fragColor = cs ;//+ ca + cd ;//+ cs;
 
 }
-/*void main( void )
-{
-     // This is the place where there's work to be done
-
-     float ka = 0.7;
-     float kd = 0.8;
-     vec4 vNull;
-
-     //Ambient lighting ca
-     vec4 ca = ka * vertColor * lightIntensity;
-
-     //Diffuse lighting cd
-     vec4 cd = kd * vertColor * max(dot(normalize(vertNormal), normalize(lightVector)), 0) * lightIntensity;
-
-     //Specular lighting cs
-
-
-     //float costheta = dot(normalize(lightVector), normalize(vertNormal));       //si bien normalise
-     vec4 h = normalize(normalize(eyeVector) + normalize(lightVector)); //vector H
-     float costhetaD = dot(h, normalize(lightVector));
-
-     float f = fresnel(vec3(normalize(lightVector)), vec3(h), eta);
-
-
-     vec4 cs ;  //initialization
-
-     if(blinnPhong){
-        cs =  f * vertColor * pow(max(dot( normalize(vertNormal), h), 0), shininess) * lightIntensity;
-    }
-     else{
-        float new_alpha = (200 - shininess)/200;
-        float costhetaH = abs(dot(normalize(vertNormal),h));
-        float costhetaI = abs(dot(normalize(vertNormal), normalize(lightVector)));
-        float costhetaO = abs(dot(normalize(vertNormal), normalize(eyeVector)));
-        float g1_i = GGXDistrib(costhetaI, new_alpha);
-        float g1_o = GGXDistrib(costhetaO, new_alpha);
-        float Do_h = NormalDistrib(costhetaH, new_alpha);
-        cs =  f *vertColor  *Do_h *g1_o*g1_i  /(4 * costhetaI * costhetaO)* lightIntensity;
-
-     }
-
-
-
-
-     //fragColor = vertColor;
-     fragColor = cs ;//+ ca + cd ;//+ cs;
-
-}*/

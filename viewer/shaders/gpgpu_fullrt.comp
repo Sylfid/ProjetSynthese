@@ -59,21 +59,20 @@ float fresnelCoef(in vec3 lightVector, in vec3 normal, in float nu) {
     return f;
 }
 
-float fresnelFactoriser(in vec3 lightVector, in vec3 normal, in float etaU) {
+/*float fresnelFactoriser(in vec3 lightVector, in vec3 normal, in float etaU) {
     float costheta = dot(lightVector, normal);       //si bien normalise
     float ci = sqrt( etaU*etaU - (1- costheta*costheta));
 
     float fs = (costheta  - ci) / (costheta + ci);
     fs = fs * fs;
-    float fp = pow( abs( (pow((etaU),2)*costheta  - ci) / (pow((etaU),2)*costheta  + ci)) ,2);
-    float fp = (etaU*etU*costheta - ci) / (etaU*etaU*costheta + ci);
+    float fp = (etaU*etaU*costheta - ci) / (etaU*etaU*costheta + ci);
     fp = fp*fp;
     float f = (fs + fp)/2.;
     if(f>1.){
         return 1.;
     }
     return f;
-}
+}*/
 
 
 bool rayPlaneIntersection(vec4 origin, vec4 dir, out vec4 intersection) {
