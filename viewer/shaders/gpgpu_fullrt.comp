@@ -47,20 +47,9 @@ vec4 normalizeVec4(in vec4 point){
     return vec4( point.x/point.w, point.y/point.w, point.z/point.w, 1);
 }
 
-float fresnelCoef2(in vec3 lightVector, in vec3 normal, in float nu) {
-    float costheta = abs(dot(lightVector, normal));       //si bien normalise
-    float ci = sqrt( pow(nu, 2) - (1- pow(costheta, 2)));
 
-    float fs = pow( abs( (costheta  - ci) / (costheta  + ci) ),2);
-    float fp = pow( abs( (pow(nu,2)*costheta  - ci) / (pow(nu,2)*costheta  + ci)) ,2);
-    float f = (fs + fp)/2.;
-    if (f>1.){
-      f = 1.;}
-    return f;
-}
-
-
-float fresnelCoef(in vec3 lightVector, in vec3 normal, in float etaU) {
+//Calcul des coefficients de Fresnels
+float fresnelCoef(in vec3 lightVector, in vec3 normal, in float etaU) { 
     float costheta = -(dot(lightVector, normal));       //si bien normalise
     float ci = sqrt( etaU*etaU - (1- costheta*costheta));
 
@@ -75,8 +64,9 @@ float fresnelCoef(in vec3 lightVector, in vec3 normal, in float etaU) {
     return f;
 }
 
+//Retourne VRAI si la demi droite d'origine origin et de direction dir intersecte le plan
 
-bool rayPlaneIntersection2(vec4 origin, vec4 dir, out vec4 intersection, out float lambda) {
+bool rayPlaneIntersection(vec4 origin, vec4 dir, out vec4 intersection, out float lambda) {
     vec3 normal = vec3(0,1,0);
     float ps = dot(dir.xyz,normal);
     vec4 originNorma = normalizeVec4(origin);
@@ -181,19 +171,22 @@ bool isIntersected(in vec4 origin, in vec4 dir, in int jprec, out hitinfo_t h)
 
 }
 
+
 vec4 specularLighting(in vec3 lightVector, in vec3 normal, in vec3 u, in vec4 vertColor, in float nu) { //normalizés dans l'appel
-    float costheta = abs(dot(lightVector, normal));
+
+    float costheta = dot(lightVector, normal);
     vec3 h = normalize(normal + lightVector); //vector H
     float f = fresnelCoef(lightVector, normal, nu);
     float theta = acos(costheta);
     float cosalphaplustheta = dot(u, normal);
     float alphaplustheta = acos(cosalphaplustheta);
     float alpha = alphaplustheta - theta;
-    float tanthetacarre = (1-pow(costheta,2))/pow(costheta,2);
-    float g1 = 2 / ( 1 + pow(1 +pow(alpha,2)*tanthetacarre ,1/2) );
-    vec4 cs = f * vertColor * pow(max(dot(normal, h), 0), shininess) * lightIntensity; //avec coef de fresnel
+    float tanthetacarre = (1-costheta*costheta)/(costheta*costheta);
+    float g1 = 2 / ( 1 + sqrt(1 +alpha*alpha*tanthetacarre) );
+    vec4 cs = f * vertColor * pow(max(dot(normal, h), 0), shininess) * lightIntensity;
     return cs;
 }
+
 
 vec4 getColorFromEnvironment(in vec3 intersectPoint){
     vec2 posEnvironment =  vec2(int(intersectPoint.x)%550/550., int(intersectPoint.z)%400/400.);
@@ -215,7 +208,7 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
 
     bool flag=false;
     bool intersectObjet = isIntersected(origin, dir, jprec, h);
-    bool intersectSol = rayPlaneIntersection2(origin, dir, intersectionSol, lambda);
+    bool intersectSol = rayPlaneIntersection(origin, dir, intersectionSol, lambda);
 
     if(intersectObjet && intersectSol){
         if (h.t[0] > lambda){
@@ -237,7 +230,6 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
 
         vec4 ambiant = ka * vertColor * lightIntensity;
 
-        //intersection-vec4(lightPosition) ??
 
         flag2=false;
         if(isIntersected(intersection, -(intersection - vec4(lightPosition, 1)), h.hit_vptr, h2)) {
@@ -269,11 +261,11 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
             vec4 specular = specularLighting(-normalize(intersectionSol.xyz-lightPosition), normalize(normal.xyz), normalize(dir.xyz), vertColor, 1.); //ok
             return(ambiant + diffuse + specular);
         }
-        //return(vec4(0.5,0.5,0.5,1));
     }
-    else{flag2 = true; return vec4(0,0,0,1);}
-    //flag2 = true;
-    //return vec4(0,0,0,1);
+    else{
+        flag2 = true; 
+        return vec4(0,0,0,1);
+    }
 }
 
 vec4 getIndirectLighting(in vec4 origin, in vec4 dir){

@@ -38,18 +38,6 @@ float fresnel2(float costheta){
     return f;
 }
 
-float fresnelNONFACTORISE(in vec3 lightVector, in vec3 normal, in float etaU) {
-    float costheta = -dot(lightVector, normal);       //si bien normalise
-    float ci = sqrt( pow((etaU), 2) - (1- pow(costheta, 2)));
-
-    float fs = pow( abs( (costheta  - ci) / (costheta  + ci) ),2);
-    float fp = pow( abs( (pow((etaU),2)*costheta  - ci) / (pow((etaU),2)*costheta  + ci)) ,2);
-    float f = (fs + fp)/2.;
-    if(f>1.){
-        return 1.;
-    }
-    return f;
-}
 
 float fresnel(in vec3 lightVector, in vec3 normal, in float etaU) {
     float costheta = -(dot(lightVector, normal));       //si bien normalise
