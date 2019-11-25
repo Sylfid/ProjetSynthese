@@ -55,7 +55,7 @@ float fresnelCoef2(in vec3 lightVector, in vec3 normal, in float etaU) {
 }
 
 float fresnelCoef(in vec3 lightVector, in vec3 normal, in float etaU) {
-    float costheta = dot(lightVector, normal);       //si bien normalise
+    float costheta = -(dot(lightVector, normal));       //si bien normalise
     float ci = sqrt( etaU*etaU - (1- costheta*costheta));
 
     float fs = (costheta  - ci) / (costheta + ci);

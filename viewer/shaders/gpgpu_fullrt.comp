@@ -169,7 +169,7 @@ vec4 interpolateColor(hitinfo_t h)
 }
 
 // A supprimer :
-/*bool isIntersected(vec4 origin, vec4 dir, out hitinfo_t h)
+bool isIntersected(vec4 origin, vec4 dir, out hitinfo_t h)
 {
     vec4 dist; // stores distance + barycentric coord
     bool hit = false;
@@ -200,7 +200,7 @@ bool isIntersected2(vec4 origin, vec4 dir, int jprec, bool sur_obj)
         }
 		}
   	return hit;
-}*/
+}
 
 bool isIntersected3(in vec4 origin, in vec4 dir, in int jprec, out hitinfo_t h)
 {
@@ -369,7 +369,7 @@ vec4 getIndirectLighting(in vec4 origin, in vec4 dir){
         colorFinal=coefFres[j]*(colorFinal + colors[j]);
     }
 
-    return colorFinal;
+    return colors[1];
 }
 
 
