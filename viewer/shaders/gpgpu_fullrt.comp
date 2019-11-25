@@ -191,7 +191,7 @@ vec4 specularLighting(in vec3 lightVector, in vec3 normal, in vec3 u, in vec4 ve
     float alpha = alphaplustheta - theta;
     float tanthetacarre = (1-pow(costheta,2))/pow(costheta,2);
     float g1 = 2 / ( 1 + pow(1 +pow(alpha,2)*tanthetacarre ,1/2) );
-    vec4 cs = f * vertColor * pow(max(dot(normal, h), 0), shininess) * lightIntensity;
+    vec4 cs = f * vertColor * pow(max(dot(normal, h), 0), shininess) * lightIntensity; //avec coef de fresnel
     return cs;
 }
 
