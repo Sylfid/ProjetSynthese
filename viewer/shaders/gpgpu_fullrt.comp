@@ -47,7 +47,7 @@ vec4 normalizeVec4(in vec4 point){
     return vec4( point.x/point.w, point.y/point.w, point.z/point.w, 1);
 }
 
-float fresnelCoef(in vec3 lightVector, in vec3 normal, in float nu) {
+float fresnelCoef2(in vec3 lightVector, in vec3 normal, in float nu) {
     float costheta = abs(dot(lightVector, normal));       //si bien normalise
     float ci = sqrt( pow(nu, 2) - (1- pow(costheta, 2)));
 
@@ -59,8 +59,9 @@ float fresnelCoef(in vec3 lightVector, in vec3 normal, in float nu) {
     return f;
 }
 
-/*float fresnelFactoriser(in vec3 lightVector, in vec3 normal, in float etaU) {
-    float costheta = dot(lightVector, normal);       //si bien normalise
+
+float fresnelCoef(in vec3 lightVector, in vec3 normal, in float etaU) {
+    float costheta = -(dot(lightVector, normal));       //si bien normalise
     float ci = sqrt( etaU*etaU - (1- costheta*costheta));
 
     float fs = (costheta  - ci) / (costheta + ci);
@@ -72,18 +73,8 @@ float fresnelCoef(in vec3 lightVector, in vec3 normal, in float nu) {
         return 1.;
     }
     return f;
-}*/
-
-
-bool rayPlaneIntersection(vec4 origin, vec4 dir, out vec4 intersection) {
-    float x = dir.x * ((-groundDistance-origin.y) / dir.y) + origin.x;
-    float z = dir.z * ((-groundDistance-origin.y) / dir.y) + origin.z;
-    if(-500 <= x && x <= 500 && -500 <= z && z <= 500) {
-        intersection = vec4(x, groundDistance, z, 0);
-        return true;
-    }
-    return false;
 }
+
 
 bool rayPlaneIntersection2(vec4 origin, vec4 dir, out vec4 intersection, out float lambda) {
     vec3 normal = vec3(0,1,0);
@@ -168,56 +159,22 @@ vec4 interpolateColor(hitinfo_t h)
 	 return vec4(1);
 }
 
-// A supprimer :
-bool isIntersected(vec4 origin, vec4 dir, out hitinfo_t h)
+bool isIntersected(in vec4 origin, in vec4 dir, in int jprec, out hitinfo_t h)
 {
     vec4 dist; // stores distance + barycentric coord
     bool hit = false;
   	h.t.x = radius * MAX_SCENE_BOUNDS;
   	if(intersectBoundingBox(origin, dir)) {
     		for(int j = 0; j < indices.length(); j += 3) {
-      			if(intersectTriangle(origin, dir, j, dist)) {
-                            if(dist.x < h.t.x) {
-                                h.t =  dist;
-                                h.hit_vptr = j;
-                                hit = true;
-                            }
-      			}
-    		}
-  	}
-  	return hit;
-}
-
-bool isIntersected2(vec4 origin, vec4 dir, int jprec, bool sur_obj)
-{
-    vec4 dist; // stores distance + barycentric coord
-    bool hit = false;
-		for(int j = 0; j < indices.length(); j += 3) {
-        if(j != jprec || !sur_obj) {
-      			if(intersectTriangle(origin, dir, j, dist)) {
-                hit = true;
-      			}
-        }
-		}
-  	return hit;
-}
-
-bool isIntersected3(in vec4 origin, in vec4 dir, in int jprec, out hitinfo_t h)
-{
-    vec4 dist; // stores distance + barycentric coord
-    bool hit = false;
-  	h.t.x = radius * MAX_SCENE_BOUNDS;
-  	if(intersectBoundingBox(origin, dir)) {
-    		for(int j = 0; j < indices.length(); j += 3) {
-                    if(j != jprec) {
-                        if(intersectTriangle(origin, dir, j, dist)) {
-                            if(dist.x < h.t.x) {
-                                h.t =  dist;
-                                h.hit_vptr = j;
-                                hit = true;
-                            }
+                if(j != jprec) {
+                    if(intersectTriangle(origin, dir, j, dist)) {
+                        if(dist.x < h.t.x) {
+                            h.t =  dist;
+                            h.hit_vptr = j;
+                            hit = true;
                         }
                     }
+                }
     		}
   	}
   	return hit;
@@ -238,21 +195,6 @@ vec4 specularLighting(in vec3 lightVector, in vec3 normal, in vec3 u, in vec4 ve
     return cs;
 }
 
-vec4 specularLightingFactorise(in vec3 lightVector, in vec3 normal, in vec3 u, in vec4 vertColor, in float nu) { //normalizés dans l'appel
-
-    float costheta = dot(lightVector, normal);
-    vec3 h = normalize(normal + lightVector); //vector H
-    float f = fresnelCoef(lightVector, normal, nu);
-    float theta = acos(costheta);
-    float cosalphaplustheta = dot(u, normal);
-    float alphaplustheta = acos(cosalphaplustheta);
-    float alpha = alphaplustheta - theta;
-    float tanthetacarre = (1-costheta*costheta)/(costheta*costheta);
-    float g1 = 2 / ( 1 + sqrt(1 +alpha*alpha*tanthetacarre) );
-    vec4 cs = f * vertColor * pow(max(dot(normal, h), 0), shininess) * lightIntensity;
-    return cs;
-}
-
 vec4 getColorFromEnvironment(in vec3 intersectPoint){
     vec2 posEnvironment =  vec2(int(intersectPoint.x)%550/550., int(intersectPoint.z)%400/400.);
     return texture2D(colorTexture, posEnvironment);
@@ -265,14 +207,14 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
 
     vec4 origin = normalizeVec4(origine);
 
-    float ka = 0.7, kd = 0.7;
+    float ka = 0.7, kd = 0.8;
     hitinfo_t h, h2;
     vec4 intersectionSol;
     float lambda;
     float distanceSol = 0.0;
 
     bool flag=false;
-    bool intersectObjet = isIntersected3(origin, dir, jprec, h);
+    bool intersectObjet = isIntersected(origin, dir, jprec, h);
     bool intersectSol = rayPlaneIntersection2(origin, dir, intersectionSol, lambda);
 
     if(intersectObjet && intersectSol){
@@ -298,7 +240,7 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
         //intersection-vec4(lightPosition) ??
 
         flag2=false;
-        if(isIntersected3(intersection, -(intersection - vec4(lightPosition, 1)), h.hit_vptr, h2)) {
+        if(isIntersected(intersection, -(intersection - vec4(lightPosition, 1)), h.hit_vptr, h2)) {
             // On est à l'ombre, donc que l'ambiant
             return(ambiant);
         }
@@ -319,7 +261,7 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
         coefFres = fresnelCoef(-normalize(intersectionSol.xyz-lightPosition), normalize(vec3(0,1,0)), eta); ///dernier para eta du sol
         jprec2 = -1;
         flag2=false;
-        if(isIntersected3(intersectionSol, -(intersectionSol - vec4(lightPosition, 1)), -1, h2)) {
+        if(isIntersected(intersectionSol, -(intersectionSol - vec4(lightPosition, 1)), -1, h2)) {
             return(ambiant);
         } else {
             vec4 normal = vec4(0,1,0,0);
@@ -357,6 +299,7 @@ vec4 getIndirectLighting(in vec4 origin, in vec4 dir){
     while(i<2){
         colors[i] = trace(newPoint, newDirection, jprec, secondPoint, newDirection2, coefFres2, flag, jprec2);
 
+        coefFres[i] = coefFres2;
         newPoint = secondPoint;
         newDirection = newDirection2;
         jprec = jprec2;
@@ -368,8 +311,8 @@ vec4 getIndirectLighting(in vec4 origin, in vec4 dir){
     for(int j=i-1; j>-1; j--){
         colorFinal=coefFres[j]*(colorFinal + colors[j]);
     }
-
-    return colors[1];
+    
+    return colorFinal;
 }
 
 
@@ -398,3 +341,4 @@ void main(void) {
 
     imageStore(framebuffer, pix, color);
 }
+

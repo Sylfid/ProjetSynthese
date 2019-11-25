@@ -39,7 +39,7 @@ float fresnel2(float costheta){
 }
 
 float fresnelNONFACTORISE(in vec3 lightVector, in vec3 normal, in float etaU) {
-    float costheta = dot(lightVector, normal);       //si bien normalise
+    float costheta = -dot(lightVector, normal);       //si bien normalise
     float ci = sqrt( pow((etaU), 2) - (1- pow(costheta, 2)));
 
     float fs = pow( abs( (costheta  - ci) / (costheta  + ci) ),2);
@@ -52,7 +52,7 @@ float fresnelNONFACTORISE(in vec3 lightVector, in vec3 normal, in float etaU) {
 }
 
 float fresnel(in vec3 lightVector, in vec3 normal, in float etaU) {
-    float costheta = dot(lightVector, normal);       //si bien normalise
+    float costheta = -(dot(lightVector, normal));       //si bien normalise
     float ci = sqrt( etaU*etaU - (1- costheta*costheta));
 
     float fs = (costheta  - ci) / (costheta + ci);
@@ -125,9 +125,9 @@ void main( void )
     }
      else{
         float new_alpha = (200 - shininess)/200;
-        float costhetaH = abs(dot(vertNormalNormalise,h));
-        float costhetaI = abs(dot(vertNormalNormalise, lightVectorNormalise));
-        float costhetaO = abs(dot(vertNormalNormalise, eyeVectorNormalise));
+        float costhetaH = dot(vertNormalNormalise,h);
+        float costhetaI = -dot(vertNormalNormalise, lightVectorNormalise);
+        float costhetaO = -dot(vertNormalNormalise, eyeVectorNormalise);
         float g1_i = GGXDistrib(costhetaI, new_alpha);
         float g1_o = GGXDistrib(costhetaO, new_alpha);
         float Do_h = NormalDistrib(costhetaH, new_alpha);
@@ -135,6 +135,6 @@ void main( void )
 
      }
 
-     fragColor = cs ;//+ ca + cd ;//+ cs;
+     fragColor = cs + ca + cd ;
 
 }
