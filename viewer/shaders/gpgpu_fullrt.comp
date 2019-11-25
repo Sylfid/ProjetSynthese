@@ -202,7 +202,7 @@ vec4 getColorFromEnvironment(in vec3 intersectPoint){
 
 const int MAX_TRACE = 1;
 
-vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out vec4 newDirection, out float coefFres, out bool flag2, out int jprec2, in int nb_iteration)
+vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out vec4 newDirection, out float coefFres, out bool flag2, out int jprec2)
 {
 
     vec4 origin = normalizeVec4(origine);
@@ -232,7 +232,6 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
 
         newPoint = intersection;
         newDirection = vec4(reflect(dir.xyz, vec3(interpolateNormal(h))),0);
-        
         coefFres = fresnelCoef(-normalize(intersection.xyz-lightPosition), interpolateNormal(h).xyz, eta);
         jprec2 = h.hit_vptr;
 
@@ -249,11 +248,7 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
             vec4 normal = interpolateNormal(h);
             vec4 diffuse = kd * vertColor * max(dot(normalize(normal.xyz), -normalize(intersection.xyz-lightPosition)), 0) * lightIntensity; //ok
             vec4 specular = specularLighting(-normalize(intersection.xyz-lightPosition), normalize(normal.xyz), normalize(dir.xyz), vertColor, eta); //ok
-            if(nb_iteration == 0){//premiere itération pas de fresnel sur tout
-              return(ambiant + coefFres *(diffuse + specular));
-            }else{
-              return(ambiant + diffuse + specular);
-            }
+            return(ambiant + diffuse + specular);
         }
     }
     else if(intersectSol) {
@@ -272,11 +267,7 @@ vec4 trace(in vec4 origine, in vec4 dir, in int jprec, out vec4 newPoint, out ve
             vec4 normal = vec4(0,1,0,0);
             vec4 diffuse = kd * vertColor * max(dot(normalize(normal.xyz), -normalize(intersectionSol.xyz-lightPosition)), 0) * lightIntensity;
             vec4 specular = specularLighting(-normalize(intersectionSol.xyz-lightPosition), normalize(normal.xyz), normalize(dir.xyz), vertColor, 1.); //ok
-            if(nb_iteration == 0){//premiere itération pas de fresnel sur tout
-              return(ambiant + coefFres *(diffuse + specular));
-            }else{
-              return(ambiant + diffuse + specular);
-            }
+            return(ambiant + diffuse + specular);
         }
         //return(vec4(0.5,0.5,0.5,1));
     }
@@ -306,7 +297,7 @@ vec4 getIndirectLighting(in vec4 origin, in vec4 dir){
     int jprec2 = 0;
 
     while(i<2){
-        colors[i] = trace(newPoint, newDirection, jprec, secondPoint, newDirection2, coefFres2, flag, jprec2, i);
+        colors[i] = trace(newPoint, newDirection, jprec, secondPoint, newDirection2, coefFres2, flag, jprec2);
 
         coefFres[i] = coefFres2;
         newPoint = secondPoint;
