@@ -113,9 +113,9 @@ void main( void )
     }
      else{
         float new_alpha = (200 - shininess)/200;
-        float costhetaH = dot(vertNormalNormalise,h);
-        float costhetaI = -dot(vertNormalNormalise, lightVectorNormalise);
-        float costhetaO = -dot(vertNormalNormalise, eyeVectorNormalise);
+        float costhetaH = abs(dot(vertNormalNormalise,h));
+        float costhetaI = abs(dot(vertNormalNormalise, lightVectorNormalise));
+        float costhetaO = abs(dot(vertNormalNormalise, eyeVectorNormalise));
         float g1_i = GGXDistrib(costhetaI, new_alpha);
         float g1_o = GGXDistrib(costhetaO, new_alpha);
         float Do_h = NormalDistrib(costhetaH, new_alpha);
