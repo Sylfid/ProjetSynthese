@@ -96,17 +96,12 @@ void main( void )
      vec4 h = normalize(eyeVectorNormalise + lightVectorNormalise); //vector H
      float costhetaD = dot(h, lightVectorNormalise);
 
-     float f;
-     if(etaIm > 0.){
-       f = fresnelComplex(vec3(lightVectorNormalise), vec3(h), eta, etaIm);
-       f =0.;
-     }
-     else{
-       //f =0.;
-       f = fresnelComplex(vec3(lightVectorNormalise), vec3(h), eta, eta);
 
-      // f = fresnel(vec3(lightVectorNormalise), vec3(h), eta);
-     }
+    float f = fresnelComplex(vec3(lightVectorNormalise), vec3(h), eta, etaIm);
+
+
+      //float f = fresnel(vec3(lightVectorNormalise), vec3(h), eta);
+
 
 
      vec4 cs ;  //initialization

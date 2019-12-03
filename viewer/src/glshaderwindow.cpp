@@ -1149,6 +1149,7 @@ void glShaderWindow::render()
         compute_program->setUniformValue("lightIntensity", lightIntensity);
         compute_program->setUniformValue("shininess", shininess);
         compute_program->setUniformValue("eta", eta);
+        compute_program->setUniformValue("etaIm", etaIm);
         compute_program->setUniformValue("framebuffer", 2);
         compute_program->setUniformValue("colorTexture", 0);
 		glBindImageTexture(2, computeResult->textureId(), 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
@@ -1214,6 +1215,7 @@ void glShaderWindow::render()
     m_program->setUniformValue("lightIntensity", lightIntensity);
     m_program->setUniformValue("shininess", shininess);
     m_program->setUniformValue("eta", eta);
+    m_program->setUniformValue("etaIm", etaIm);
     m_program->setUniformValue("radius", modelMesh->bsphere.r);
 	if (m_program->uniformLocation("colorTexture") != -1) m_program->setUniformValue("colorTexture", 0);
     if (m_program->uniformLocation("envMap") != -1)  m_program->setUniformValue("envMap", 1);
@@ -1243,6 +1245,7 @@ void glShaderWindow::render()
         ground_program->setUniformValue("lightIntensity", lightIntensity);
         ground_program->setUniformValue("shininess", shininess);
         ground_program->setUniformValue("eta", eta);
+        ground_program->setUniformValue("etaIm", etaIm);
         ground_program->setUniformValue("radius", modelMesh->bsphere.r);
 		if (ground_program->uniformLocation("colorTexture") != -1) ground_program->setUniformValue("colorTexture", 0);
         if (ground_program->uniformLocation("shadowMap") != -1) {
