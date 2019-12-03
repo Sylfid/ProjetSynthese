@@ -124,7 +124,7 @@ void main(void)
         hasIntersect = intersections(depart, u, intersection, indice);
     }
     if(compteur == 0) { // on a rien intersecté
-        resultColor = vec4(0.4,0,0,1);
+        resultColor = vec4(0.2,0.6,0.7,1); //couleur du fond
     } else {
         resultColor = vec4(0,0,0,1);
         for(int i=compteur-1; i>=0; i--) {

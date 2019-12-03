@@ -19,28 +19,21 @@ in vec4 lightSpace;
 
 out vec4 fragColor;
 
-float fresnel2(float costheta){
+float fresnelComplex(in vec3 lightVector, in vec3 normal, in float etaU, in float etaImU) {
+    float costheta = abs(dot(lightVector, normal));  //si bien normalise
+    float sintheta2 = 1 -costheta*costheta;
+    float rCi = pow(etaU*etaU -etaImU*etaImU -sintheta2 + 2*etaU*etaImU, 0.25);//ciraison
+    float argCi = 0.5*atan(2*etaU*etaImU, etaU*etaU -etaImU*etaImU -sintheta2);//ciarg
+    float fs = (pow(costheta- (rCi*cos(argCi)),2) + pow(rCi* sin(argCi), 2))/(pow(costheta + (rCi*cos(argCi)),2) + pow(rCi * sin(argCi), 2));
+    float fp = (pow(etaU*etaU*costheta - rCi*cos(argCi),2) + pow(etaU*etaU*costheta- rCi * sin(argCi),2)) / (pow(etaU*etaU*costheta + rCi*cos(argCi),2) + pow(etaU*etaU*costheta  + rCi * sin(argCi),2));
+    float f = (fs + fp)/2.;
 
-    float eta2 = eta*eta;
-    float ci = sqrt( eta2 - (1- costheta*costheta));
-
-    float fs = (costheta  - ci) / (costheta  + ci);
-    fs = fs*fs;
-
-    float fp = (eta2*costheta - ci) / (eta2*costheta + ci);
-    fp = fp*fp;
-
-    float f = (fs + fp)/2;
-
-    if (f>1.){
-      f = 1.;}
-
-    return f;
+    return 0.;
 }
 
 
 float fresnel(in vec3 lightVector, in vec3 normal, in float etaU) {
-    float costheta = -(dot(lightVector, normal));       //si bien normalise
+    float costheta = abs(dot(lightVector, normal));       //si bien normalise
     float ci = sqrt( etaU*etaU - (1- costheta*costheta));
 
     float fs = (costheta  - ci) / (costheta + ci);
@@ -103,7 +96,13 @@ void main( void )
      vec4 h = normalize(eyeVectorNormalise + lightVectorNormalise); //vector H
      float costhetaD = dot(h, lightVectorNormalise);
 
-     float f = fresnel(vec3(lightVectorNormalise), vec3(h), eta);
+     float f;
+     if(etaIm>0.01){
+       f = fresnelComplex(vec3(lightVectorNormalise), vec3(h), eta, etaIm);
+     }
+     else{
+       f = fresnel(vec3(lightVectorNormalise), vec3(h), eta);
+     }
 
 
      vec4 cs ;  //initialization

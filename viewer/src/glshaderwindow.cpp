@@ -335,7 +335,7 @@ QWidget *glShaderWindow::makeAuxWindow()
     etaImSlider->setMaximum(500);
     etaImSlider->setSliderPosition(eta*100);
     connect(etaImSlider,SIGNAL(valueChanged(int)),this,SLOT(updateEtaIm(int)));
-    QLabel* etaImLabel = new QLabel("Eta Im (index of refraction part complex) * 100 =");
+    QLabel* etaImLabel = new QLabel("Eta Im (complex part) * 100 =");
     QLabel* etaImLabelValue = new QLabel();
     etaImLabelValue->setNum(etaIm * 100);
     connect(etaImSlider,SIGNAL(valueChanged(int)),etaImLabelValue,SLOT(setNum(int)));
