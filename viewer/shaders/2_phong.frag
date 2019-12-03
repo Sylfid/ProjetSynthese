@@ -22,13 +22,13 @@ out vec4 fragColor;
 float fresnelComplex(in vec3 lightVector, in vec3 normal, in float etaU, in float etaImU) {
     float costheta = abs(dot(lightVector, normal));  //si bien normalise
     float sintheta2 = 1 -costheta*costheta;
-    float rCi = pow(etaU*etaU -etaImU*etaImU -sintheta2 + 2*etaU*etaImU, 0.25);//ciraison
-    float argCi = 0.5*atan(2*etaU*etaImU, etaU*etaU -etaImU*etaImU -sintheta2);//ciarg
+    float rCi = pow(etaU*etaU -etaImU*etaImU -sintheta2 + 2*etaU*etaImU, 0.25);
+    float argCi = 0.5*atan(2*etaU*etaImU, etaU*etaU -etaImU*etaImU -sintheta2);
     float fs = (pow(costheta- (rCi*cos(argCi)),2) + pow(rCi* sin(argCi), 2))/(pow(costheta + (rCi*cos(argCi)),2) + pow(rCi * sin(argCi), 2));
     float fp = (pow(etaU*etaU*costheta - rCi*cos(argCi),2) + pow(etaU*etaU*costheta- rCi * sin(argCi),2)) / (pow(etaU*etaU*costheta + rCi*cos(argCi),2) + pow(etaU*etaU*costheta  + rCi * sin(argCi),2));
     float f = (fs + fp)/2.;
 
-    return 0.;
+    return f;
 }
 
 
@@ -97,11 +97,15 @@ void main( void )
      float costhetaD = dot(h, lightVectorNormalise);
 
      float f;
-     if(etaIm>0.01){
+     if(etaIm > 0.){
        f = fresnelComplex(vec3(lightVectorNormalise), vec3(h), eta, etaIm);
+       f =0.;
      }
      else{
-       f = fresnel(vec3(lightVectorNormalise), vec3(h), eta);
+       //f =0.;
+       f = fresnelComplex(vec3(lightVectorNormalise), vec3(h), eta, eta);
+
+      // f = fresnel(vec3(lightVectorNormalise), vec3(h), eta);
      }
 
 
